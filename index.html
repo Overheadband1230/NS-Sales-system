@@ -738,8 +738,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .field input,.field select,.field textarea,.control{width:100%;border:1px solid var(--line);border-radius:8px;background:#0c1015;color:var(--text);padding:9px 10px;font-size:12px}
 .field textarea{resize:vertical;min-height:68px}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--yellow)}
 .field-help{margin-top:4px;color:#778393;font-size:10px}.check-row{display:flex;gap:8px;align-items:center;color:#c9d1dc;font-size:12px}.check-row input{width:auto}
-.stop-card{border:1px solid var(--line);border-radius:12px;background:#11171e;margin-bottom:12px;overflow:hidden}.stop-card.drag-over{border-color:var(--yellow)}.stop-card.dragging{opacity:.45}
-.stop-card-head{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#171e27;border-bottom:1px solid var(--line)}.stop-number{color:var(--yellow);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}.stop-card-title{font-size:12px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.stop-card-actions{display:flex;gap:5px;margin-left:auto}.stop-card-body{padding:12px}
+.quick-route{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px;padding-bottom:12px;border-bottom:1px solid var(--line)}.quick-route strong{display:block;font-size:14px}.quick-route span{display:block;color:var(--muted);font-size:11px;margin-top:3px}.quick-route .route-arrow{display:inline;color:var(--yellow);margin:0 5px}.quick-stop-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.quick-stop{border:1px solid var(--line);border-radius:12px;background:#11171e;padding:13px}.quick-stop.current{border-color:#665812}.quick-stop.next{border-color:#254d6a}.quick-stop-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}.quick-stop-kicker{color:var(--yellow);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.09em}.quick-stop.next .quick-stop-kicker{color:#81c8fa}.quick-stop-title{font-size:14px;font-weight:850;margin-top:3px}.quick-stop-type{color:var(--muted);font-size:10px;text-align:right}.scheduled-value{border:1px solid var(--line);border-radius:9px;background:#0d1218;padding:9px 10px;margin-bottom:11px}.scheduled-value span{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:800}.scheduled-value strong{display:block;font-size:11px;margin-top:3px}.inline-error{color:#ffabab;font-size:10px;line-height:1.4;margin-top:5px}.quick-advanced{border:1px solid var(--line);border-radius:11px;background:#10161d;margin-top:12px}.quick-advanced>summary,.data-tools>summary{cursor:pointer;padding:11px 13px;font-size:11px;font-weight:850;color:var(--muted)}.quick-advanced-body{padding:0 13px 13px}.auto-time-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.auto-time-row .field{flex:1 1 220px}.auto-time-note{color:var(--muted);font-size:10px;line-height:1.4}.data-tools{border:1px solid var(--line);border-radius:13px;background:var(--panel);margin-top:14px}.data-tools-body{padding:0 14px 1px}.data-tools-body .form-section{background:#11171e}
+.quick-stop .form-grid{grid-template-columns:1fr}
+.stop-card{border:1px solid var(--line);border-radius:12px;background:#11171e;margin-bottom:9px;overflow:hidden}.stop-card.drag-over{border-color:var(--yellow)}.stop-card.dragging{opacity:.45}.stop-card.expanded{border-color:#4a5665}
+.stop-card-head{display:grid;grid-template-columns:auto minmax(120px,1fr) minmax(210px,1.3fr) auto;align-items:center;gap:10px;padding:9px 11px;background:#171e27}.stop-number{color:var(--yellow);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}.stop-card-title{font-size:12px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.stop-card-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;color:var(--muted);font-size:10px}.stop-card-summary strong{display:block;color:var(--text);font-size:10px;margin-top:2px}.stop-card-actions{display:flex;gap:5px;margin-left:auto}.stop-card-body{padding:12px;border-top:1px solid var(--line)}
 .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.toolbar.spread{justify-content:space-between}.range-row{display:grid;grid-template-columns:1fr 58px;align-items:center;gap:12px}.range-row input[type=range]{accent-color:var(--yellow)}
 .notice{border:1px solid #5d4b08;border-radius:10px;background:#292207;color:#f7e9a9;padding:10px 12px;font-size:11px;line-height:1.5;margin-bottom:12px}.notice.error{border-color:#6c3030;background:#281416;color:#ffc2c2}.notice.good{border-color:#285c43;background:#10251a;color:#aef0ca}
 .file-label{display:inline-flex;align-items:center;justify-content:center}.file-label input{display:none}.saved-list{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:end}
@@ -752,7 +754,7 @@ body.customer .snapshot{background:#2c2405}
   body{overflow:auto}.app{height:auto;min-height:100vh;grid-template-rows:auto auto auto;overflow:visible}.workspace{grid-template-columns:1fr;grid-template-rows:48vh auto}.details{border-left:0;border-top:1px solid var(--line);min-height:52vh}.timeline{max-height:none}.topbar{padding:11px 14px}.brand-mark{width:39px;height:39px}.route-title{font-size:16px}.snapshot{padding:9px 14px}.map-label{top:10px;left:10px}.map-tools{right:10px;bottom:10px}
 }
 @media(max-width:620px){
-  .eyebrow{display:none}.topbar{gap:10px}.route-title{font-size:14px}.button .wide-label{display:none}.workspace{grid-template-rows:43vh auto}.summary{padding:15px}.editor-body{padding:12px}.form-grid,.form-grid.three{grid-template-columns:1fr}.field.full{grid-column:auto}.editor-footer{flex-wrap:wrap}.draft-state{width:100%;order:3}.map-chip:nth-child(n+2){display:none}
+  .eyebrow{display:none}.topbar{gap:10px}.route-title{font-size:14px}.button .wide-label{display:none}.workspace{grid-template-rows:43vh auto}.summary{padding:15px}.editor-body{padding:12px}.form-grid,.form-grid.three,.quick-stop-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.editor-footer{flex-wrap:wrap}.editor-footer .primary{flex:1 1 100%;order:1}.editor-footer #saveOnlyButton,.editor-footer #cancelEditorButton{order:2}.draft-state{width:100%;order:3}.map-chip:nth-child(n+2){display:none}.stop-card-head{grid-template-columns:auto 1fr auto}.stop-card-summary{grid-column:1/-1;grid-row:2}.stop-card-actions{grid-column:3;grid-row:1}.quick-route{align-items:flex-start}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
 </style>
@@ -810,16 +812,15 @@ body.customer .snapshot{background:#2c2405}
     <button class="button icon-button editor-close" id="closeEditorButton" type="button" aria-label="Close editor">×</button>
   </header>
   <nav class="editor-tabs" id="editorTabs" aria-label="Editor sections">
-    <button class="editor-tab active" type="button" data-tab="shipment">1 · Shipment</button>
-    <button class="editor-tab" type="button" data-tab="stops">2 · Stops</button>
-    <button class="editor-tab" type="button" data-tab="position">3 · Position</button>
-    <button class="editor-tab" type="button" data-tab="export">4 · Save &amp; export</button>
+    <button class="editor-tab active" type="button" data-tab="quick">Quick update</button>
+    <button class="editor-tab" type="button" data-tab="setup">Route setup</button>
   </nav>
   <div class="editor-body" id="editorBody"></div>
   <footer class="editor-footer">
     <span class="draft-state" id="draftState">No unapplied changes</span>
     <button class="button" id="cancelEditorButton" type="button">Cancel</button>
-    <button class="button primary" id="applyEditorButton" type="button">Apply changes</button>
+    <button class="button" id="saveOnlyButton" type="button">Save only</button>
+    <button class="button primary" id="applyEditorButton" type="button">Save &amp; download customer update</button>
   </footer>
 </aside>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -1130,8 +1131,10 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 <script data-editor-only data-editor-script>
 (function(){
 "use strict";
-var APP=window.NS_APP,DRAFT=null,activeTab="shipment",dirty=false,dragIndex=null,commonCorridorId="atlanta-croxton",commonDirection="forward";
+var APP=window.NS_APP,DRAFT=null,activeTab="quick",dirty=false,dragIndex=null,commonCorridorId="atlanta-croxton",commonDirection="forward";
+var activeSavedRouteName=null,expandedStopId=null,manualTimestampOverride=false,quickErrors=[];
 var LS_ROUTES="ns-tracker-v2.routes",LS_LOCATIONS="ns-tracker-v2.locations";
+var TIMEZONE_MAP={ET:"America/New_York",EST:"America/New_York",EDT:"America/New_York",CT:"America/Chicago",CST:"America/Chicago",CDT:"America/Chicago",MT:"America/Denver",MST:"America/Denver",MDT:"America/Denver",PT:"America/Los_Angeles",PST:"America/Los_Angeles",PDT:"America/Los_Angeles"};
 var BUILTIN_LOCATIONS={
  "Fargo, ND":{coords:[46.877,-96.789],type:"Origin"},"Minneapolis, MN":{coords:[44.977,-93.265],type:"Waypoint"},
  "Chicago, IL":{coords:[41.85,-87.65],type:"Interchange Hub",major:true},"Fort Wayne, IN":{coords:[41.079,-85.139],type:"Waypoint"},
@@ -1170,7 +1173,7 @@ function select(options,value){var node=document.createElement("select");options
 function field(labelText,control,full,help){var wrap=h("div","field"+(full?" full":"")),label=h("label","",labelText);if(!control.id)control.id="field-"+Math.random().toString(36).slice(2);label.htmlFor=control.id;wrap.append(label,control);if(help)wrap.appendChild(h("div","field-help",help));return wrap}
 function section(title,copy){var node=h("section","form-section"),heading=h("h3","",title);node.appendChild(heading);if(copy)node.appendChild(h("p","section-copy",copy));return node}
 function grid(kind){return h("div","form-grid"+(kind?" "+kind:""))}
-function setDirty(){dirty=true;APP.byId("draftState").textContent="Draft has unapplied changes"}
+function setDirty(){dirty=true;quickErrors=[];var body=APP.byId("editorBody");if(body)body.querySelectorAll(".notice.error,.inline-error").forEach(function(node){node.remove()});APP.byId("draftState").textContent="Draft has unapplied changes"}
 function listen(control,fn,eventName){control.addEventListener(eventName||"input",function(){fn(control);setDirty()});return control}
 function slug(text){var value=String(text||"stop").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,40)||"stop",base=value,n=2;while(DRAFT.stops.some(function(stop){return stop.id===value})){value=base+"-"+n;n++}return value}
 function storageGet(key){try{return JSON.parse(localStorage.getItem(key))||{}}catch(error){return {}}}
@@ -1178,18 +1181,37 @@ function storageSet(key,value){try{localStorage.setItem(key,JSON.stringify(value
 function storageWorks(){try{localStorage.setItem("ns-tracker.probe","1");localStorage.removeItem("ns-tracker.probe");return true}catch(error){return false}}
 function allLocations(){return Object.assign({},BUILTIN_LOCATIONS,storageGet(LS_LOCATIONS))}
 function open(){
-  DRAFT=APP.getData();dirty=false;activeTab="shipment";APP.byId("draftState").textContent="No unapplied changes";
+  DRAFT=APP.getData();dirty=false;activeTab="quick";activeSavedRouteName=null;expandedStopId=null;manualTimestampOverride=false;quickErrors=[];APP.byId("draftState").textContent="No unapplied changes";
   APP.byId("editorPanel").classList.add("open");APP.byId("editorShade").classList.add("open");document.body.style.overflow="hidden";
-  setActiveTab("shipment");setTimeout(function(){var first=APP.byId("editorBody").querySelector("input,select,button");if(first)first.focus()},50);
+  setActiveTab("quick");setTimeout(function(){var first=APP.byId("editorBody").querySelector("input,select,button");if(first)first.focus()},50);
 }
 function close(){APP.byId("editorPanel").classList.remove("open");APP.byId("editorShade").classList.remove("open");document.body.style.overflow="";APP.byId("openEditorButton").focus()}
 function apply(){
   var errors=APP.validate(DRAFT);if(errors.length){showErrors(errors);return false}
-  APP.setData(DRAFT,true);dirty=false;APP.byId("draftState").textContent="Changes applied";APP.toast("Shipment updated");return true;
+  APP.setData(DRAFT,true);dirty=false;APP.byId("draftState").textContent="Changes applied";return true;
+}
+function routeStorageName(){
+  if(activeSavedRouteName)return activeSavedRouteName;
+  var origin=DRAFT.stops[0]&&DRAFT.stops[0].name,destination=DRAFT.stops[DRAFT.stops.length-1]&&DRAFT.stops[DRAFT.stops.length-1].name;
+  return String(DRAFT.trainId||((origin&&destination)?origin+" to "+destination:"")||"Route").trim();
+}
+function saveWorkingRoute(){var name=routeStorageName(),routes=storageGet(LS_ROUTES);routes[name]=APP.clone(DRAFT);if(!storageSet(LS_ROUTES,routes))return false;activeSavedRouteName=name;return true}
+function configuredNow(){
+  var zone=TIMEZONE_MAP[String(DRAFT.timezone||"").trim().toUpperCase()];if(!zone)return null;
+  try{var parts={},formatter=new Intl.DateTimeFormat("en-CA",{timeZone:zone,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"});formatter.formatToParts(new Date()).forEach(function(part){if(part.type!=="literal")parts[part.type]=part.value});return parts.year+"-"+parts.month+"-"+parts.day+"T"+parts.hour+":"+parts.minute}catch(error){return null}
+}
+function prepareAutomaticTimestamp(){
+  if(manualTimestampOverride)return true;
+  var value=configuredNow();if(value){DRAFT.updatedAt=value;return true}
+  quickErrors=["Automatic time needs a supported timezone label: ET, CT, MT, or PT. Enter the timestamp manually or correct the timezone."];activeTab="quick";setActiveTab("quick");return false;
+}
+function saveOnly(){if(!apply())return;if(saveWorkingRoute())APP.toast("Working route saved as "+activeSavedRouteName);else APP.toast("Browser storage is unavailable — export route JSON instead")}
+function saveAndDownload(){
+  if(!prepareAutomaticTimestamp())return;if(!apply())return;
+  var saved=saveWorkingRoute();if(downloadCustomer()){close();APP.toast(saved?"Update saved and customer file downloaded":"Customer file downloaded · browser storage unavailable")}
 }
 function showErrors(errors){
-  activeTab="export";setActiveTab("export");
-  var body=APP.byId("editorBody"),notice=h("div","notice error","Please fix: "+errors.join(" "));body.insertBefore(notice,body.firstChild);body.scrollTop=0;
+  quickErrors=errors.slice();activeTab="quick";setActiveTab("quick");APP.byId("editorBody").scrollTop=0;
 }
 function setActiveTab(tab){
   activeTab=tab;APP.byId("editorTabs").querySelectorAll("[data-tab]").forEach(function(node){var on=node.dataset.tab===tab;node.classList.toggle("active",on);node.setAttribute("aria-current",on?"page":"false")});
@@ -1197,10 +1219,44 @@ function setActiveTab(tab){
 }
 function renderTab(){
   var body=APP.byId("editorBody");body.replaceChildren();
-  if(activeTab==="shipment")renderShipment(body);
-  else if(activeTab==="stops")renderStops(body);
-  else if(activeTab==="position")renderPosition(body);
-  else renderExport(body);
+  if(activeTab==="quick")renderQuick(body);else renderSetup(body);
+}
+function currentStopIndex(){
+  var position=DRAFT.currentPosition||{},id=position.mode==="leg"?position.fromStopId:position.stopId,index=DRAFT.stops.findIndex(function(stop){return stop.id===id});return index>=0?index:0;
+}
+function routeSummary(){var first=DRAFT.stops[0],last=DRAFT.stops[DRAFT.stops.length-1];return (first?first.name:"—")+" → "+(last?last.name:"—")}
+function scheduledText(stop){return stop&&stop.scheduledAt?APP.formatDate(stop.scheduledAt,DRAFT.timezone):"Not scheduled"}
+function quickStopCard(stop,kind){
+  var card=h("section","quick-stop "+kind),head=h("div","quick-stop-head"),copy=h("div",""),kicker=h("div","quick-stop-kicker",kind==="current"?"Current stop":"Next stop"),title=h("div","quick-stop-title",stop.name),type=h("div","quick-stop-type",stop.type||"Waypoint");copy.append(kicker,title);head.append(copy,type);card.appendChild(head);
+  var scheduled=h("div","scheduled-value"),scheduledLabel=h("span","","Scheduled"),scheduledStrong=h("strong","",scheduledText(stop));scheduled.append(scheduledLabel,scheduledStrong);card.appendChild(scheduled);
+  var time=listen(input("datetime-local",stop.projectedAt),function(c){stop.projectedAt=c.value}),timing=listen(select([{value:"actual",label:"Actual"},{value:"estimated",label:"Estimated"},{value:"none",label:"Not specified"}],stop.timingState),function(c){stop.timingState=c.value},"change"),fields=grid();
+  fields.append(field(kind==="current"?"Actual / reported time":"Estimated arrival",time),field("Status",timing));card.appendChild(fields);
+  var customer=document.createElement("textarea"),internal=document.createElement("textarea");customer.value=stop.customerNote||"";internal.value=stop.internalNote||"";customer.maxLength=internal.maxLength=2000;
+  listen(customer,function(c){stop.customerNote=APP.clean(c.value,2000)});listen(internal,function(c){stop.internalNote=APP.clean(c.value,2000)});
+  card.append(field("Customer-visible note",customer,false,"Included in the downloaded customer file."),field("Internal note",internal,false,"Kept only in the working route."));return card;
+}
+function renderAdvancedPosition(parent){
+  var details=h("details","quick-advanced"),position=DRAFT.currentPosition||{},mode=position.mode==="leg"?"leg":"stop",index=currentStopIndex(),from=DRAFT.stops[index],to=DRAFT.stops[index+1],summaryText=mode==="leg"&&from&&to?"Advanced position · "+Math.round((Number(position.progress)||0)*100)+"% from "+from.name+" to "+to.name:"Advanced position · place the train between stops";details.appendChild(h("summary","",summaryText));var content=h("div","quick-advanced-body"),modeSelect=select([{value:"stop",label:"At the selected stop"},{value:"leg",label:"Between the selected stop and the next stop"}],mode);
+  modeSelect.addEventListener("change",function(){var index=currentStopIndex();if(modeSelect.value==="leg"){if(index>=DRAFT.stops.length-1)index=Math.max(0,DRAFT.stops.length-2);DRAFT.currentPosition={mode:"leg",fromStopId:DRAFT.stops[index].id,toStopId:DRAFT.stops[index+1].id,progress:.5}}else{DRAFT.currentPosition={mode:"stop",stopId:DRAFT.stops[index].id}}setDirty();renderTab()});content.appendChild(field("Position detail",modeSelect));
+  if(mode==="leg"){
+    var legs=DRAFT.stops.slice(0,-1).map(function(stop,i){return {value:stop.id,label:stop.name+" → "+DRAFT.stops[i+1].name}}),legSelect=select(legs,position.fromStopId);listen(legSelect,function(c){var i=DRAFT.stops.findIndex(function(stop){return stop.id===c.value});DRAFT.currentPosition={mode:"leg",fromStopId:DRAFT.stops[i].id,toStopId:DRAFT.stops[i+1].id,progress:DRAFT.currentPosition.progress==null?.5:DRAFT.currentPosition.progress};renderTab()},"change");content.appendChild(field("Current leg",legSelect));
+    var rangeWrap=h("div","field"),label=h("label","","Progress along this leg"),row=h("div","range-row"),range=input("range",Math.round((Number(position.progress)||0)*100)),output=input("number",Math.round((Number(position.progress)||0)*100));range.min=output.min="0";range.max=output.max="100";range.step=output.step="1";
+    function update(value){value=Math.max(0,Math.min(100,Number(value)||0));range.value=output.value=value;DRAFT.currentPosition.progress=value/100;setDirty()}
+    range.addEventListener("input",function(){update(range.value)});output.addEventListener("input",function(){update(output.value)});row.append(range,output);rangeWrap.append(label,row);content.appendChild(rangeWrap);
+  }
+  details.appendChild(content);parent.appendChild(details);
+}
+function renderQuick(body){
+  if(quickErrors.length)body.appendChild(h("div","notice error","Please fix: "+quickErrors.join(" ")));
+  var card=section("Post a status update","Update the train’s latest reached stop and the next expected stop without opening the full route schedule."),route=h("div","quick-route"),routeCopy=h("div",""),routeName=h("strong","",routeSummary()),routeMeta=h("span","",DRAFT.stops.length+" stops · "+(DRAFT.customer||"No customer")),train=input("text",DRAFT.trainId);train.maxLength=120;listen(train,function(c){DRAFT.trainId=APP.clean(c.value,120)});routeCopy.append(routeName,routeMeta);route.append(routeCopy,field("Train ID / symbol",train));card.appendChild(route);
+  var index=currentStopIndex(),current=DRAFT.stops[index],next=DRAFT.stops[index+1],selector=select(DRAFT.stops.map(function(stop){return {value:stop.id,label:stop.name}}),current&&current.id);selector.id="quickCurrentStop";
+  selector.addEventListener("change",function(){var i=DRAFT.stops.findIndex(function(stop){return stop.id===selector.value});if(i<0)return;DRAFT.currentPosition={mode:"stop",stopId:DRAFT.stops[i].id};DRAFT.stops[i].timingState="actual";if(DRAFT.stops[i+1])DRAFT.stops[i+1].timingState="estimated";setDirty();renderTab();setTimeout(function(){var control=APP.byId("quickCurrentStop");if(control)control.focus()},0)});card.appendChild(field("Latest reached stop",selector,true,"The next stop is selected automatically from the route order."));
+  var zone=listen(input("text",DRAFT.timezone),function(c){DRAFT.timezone=APP.clean(c.value,12)});zone.maxLength=12;zone.placeholder="ET, CT, MT, PT";var updated=input("datetime-local",DRAFT.updatedAt),timeRow=h("div","auto-time-row"),timeField=field("Last updated",updated),zoneField=field("Timezone",zone),autoNote=h("div","auto-time-note",manualTimestampOverride?"Manual timestamp override is active.":"Automatically set in the configured timezone when you save and download."),autoButton=button("Use automatic time","small",function(){manualTimestampOverride=false;autoButton.disabled=true;autoNote.textContent="Automatically set in the configured timezone when you save and download.";setDirty()});autoButton.disabled=!manualTimestampOverride;updated.addEventListener("input",function(){DRAFT.updatedAt=updated.value;manualTimestampOverride=true;autoButton.disabled=false;autoNote.textContent="Manual timestamp override is active.";setDirty()});timeRow.append(timeField,zoneField,autoNote,autoButton);var timeError=quickErrors.find(function(error){return /timezone|last-updated|date and time/i.test(error)});if(timeError)zoneField.appendChild(h("div","inline-error",timeError));card.appendChild(timeRow);renderAdvancedPosition(card);body.appendChild(card);
+  if(current){var stopGrid=h("div","quick-stop-grid");stopGrid.appendChild(quickStopCard(current,"current"));if(next)stopGrid.appendChild(quickStopCard(next,"next"));else{var complete=section("Destination reached","The selected stop is the final destination. There is no next-stop estimate to update.");complete.classList.add("quick-stop","next");stopGrid.appendChild(complete)}body.appendChild(stopGrid)}
+}
+function renderSetup(body){
+  renderShipment(body);renderStops(body);
+  var details=h("details","data-tools"),summary=h("summary","","Saved routes, customer download, and portable JSON"),inner=h("div","data-tools-body");renderExport(inner);details.append(summary,inner);body.appendChild(details);
 }
 function renderShipment(body){
   var card=section("Shipment details","These fields appear in both the working view and the customer snapshot."),form=grid();
@@ -1209,9 +1265,9 @@ function renderShipment(body){
   var customer=listen(input("text",DRAFT.customer),function(c){DRAFT.customer=APP.clean(c.value,200)});customer.maxLength=200;
   var commodity=listen(input("text",DRAFT.commodity),function(c){DRAFT.commodity=APP.clean(c.value,200)});commodity.maxLength=200;
   var cars=listen(input("number",DRAFT.cars),function(c){DRAFT.cars=Math.max(0,Number(c.value)||0)});cars.min="0";cars.max="9999";
-  var updated=listen(input("datetime-local",DRAFT.updatedAt),function(c){DRAFT.updatedAt=c.value});
+  var updated=listen(input("datetime-local",DRAFT.updatedAt),function(c){DRAFT.updatedAt=c.value;manualTimestampOverride=true});
   var timezone=listen(input("text",DRAFT.timezone),function(c){DRAFT.timezone=APP.clean(c.value,12)});timezone.maxLength=12;timezone.placeholder="ET, CT, MT…";
-  form.append(field("Carrier / title",carrier),field("Train ID / symbol",train),field("Customer",customer),field("Commodity",commodity),field("Cars",cars),field("Last updated",updated),field("Timezone label",timezone,false,"Shown as entered; times are never shifted automatically."));
+  form.append(field("Carrier / title",carrier),field("Train ID / symbol",train),field("Customer",customer),field("Commodity",commodity),field("Cars",cars),field("Last updated",updated),field("Timezone label",timezone,false,"Manual edits are shown exactly as entered. Quick updates can stamp the current time for ET, CT, MT, or PT."));
   card.appendChild(form);body.appendChild(card);
   var truth=section("Snapshot behavior","The tracker always keeps the exact date and time you enter. Reopening an old file will never make it look newly updated.");
   truth.appendChild(h("div","notice good","Factual timestamps are enabled. Customer exports clearly state that they do not update automatically."));body.appendChild(truth);
@@ -1256,6 +1312,7 @@ function loadCommonCorridor(corridor,direction){
   DRAFT.trainId=direction==="reverse"?corridor.reverseSymbol:corridor.forwardSymbol;
   DRAFT.routeSegments={};
   DRAFT.currentPosition={mode:"stop",stopId:DRAFT.stops[0].id};
+  expandedStopId=null;
   setDirty();
   var result=autoRoute({silent:true});
   renderTab();
@@ -1268,10 +1325,11 @@ function stopCard(stop,index){
   card.addEventListener("dragover",function(event){event.preventDefault();card.classList.add("drag-over")});
   card.addEventListener("dragleave",function(){card.classList.remove("drag-over")});
   card.addEventListener("drop",function(event){event.preventDefault();card.classList.remove("drag-over");if(dragIndex!=null&&dragIndex!==index)moveStop(dragIndex,index)});
-  var head=h("div","stop-card-head"),number=h("span","stop-number","Stop "+(index+1)),title=h("span","stop-card-title",stop.name||"New stop"),actions=h("div","stop-card-actions");
-  var up=button("↑","small",function(){moveStop(index,index-1)}),down=button("↓","small",function(){moveStop(index,index+1)}),remove=button("Remove","small danger",function(){removeStop(index)});
+  var expanded=expandedStopId===stop.id;if(expanded)card.classList.add("expanded");
+  var head=h("div","stop-card-head"),number=h("span","stop-number","Stop "+(index+1)),title=h("span","stop-card-title",stop.name||"New stop"),summary=h("div","stop-card-summary"),scheduled=h("div","","Scheduled"),scheduledValue=h("strong","",scheduledText(stop)),reported=h("div","",stop.timingState==="actual"?"Actual":"Estimate"),reportedValue=h("strong","",stop.projectedAt?APP.formatDate(stop.projectedAt,DRAFT.timezone):"Not entered"),actions=h("div","stop-card-actions");scheduled.appendChild(scheduledValue);reported.appendChild(reportedValue);summary.append(scheduled,reported);
+  var edit=button(expanded?"Done":"Edit","small",function(){expandedStopId=expanded?null:stop.id;renderTab()}),up=button("↑","small",function(){moveStop(index,index-1)}),down=button("↓","small",function(){moveStop(index,index+1)}),remove=button("Remove","small danger",function(){removeStop(index)});
   up.setAttribute("aria-label","Move stop up");down.setAttribute("aria-label","Move stop down");up.disabled=index===0;down.disabled=index===DRAFT.stops.length-1;remove.disabled=DRAFT.stops.length<=2;
-  actions.append(up,down,remove);head.append(number,title,actions);card.appendChild(head);
+  edit.setAttribute("aria-expanded",expanded?"true":"false");edit.setAttribute("aria-label",(expanded?"Close":"Edit")+" "+(stop.name||"stop"));actions.append(edit,up,down,remove);head.append(number,title,summary,actions);card.appendChild(head);if(!expanded)return card;
   var content=h("div","stop-card-body"),pick=locationOptions(""),pickField=field("Fill from saved location",pick,true);
   pick.addEventListener("change",function(){if(!pick.value)return;var record=allLocations()[pick.value];stop.name=pick.value;stop.coords=record.coords.slice();stop.type=record.type||stop.type;stop.major=!!record.major;setDirty();renderTab()});
   content.appendChild(pickField);
@@ -1290,8 +1348,8 @@ function stopCard(stop,index){
   var saveRow=h("div","toolbar");saveRow.appendChild(button("+ Save this location","small",function(){saveStopLocation(stop)}));content.appendChild(saveRow);
   card.appendChild(content);return card;
 }
-function addStop(){var id=slug("new-stop"),previous=DRAFT.stops[DRAFT.stops.length-1];DRAFT.stops.push({id:id,name:"New stop",coords:previous?previous.coords.slice():[40,-84],type:"Waypoint",major:false,scheduledAt:"",projectedAt:"",timingState:"estimated",customerNote:"",internalNote:"",via:[]});setDirty();renderTab()}
-function removeStop(index){if(DRAFT.stops.length<=2)return;var removed=DRAFT.stops.splice(index,1)[0];Object.keys(DRAFT.routeSegments||{}).forEach(function(key){if(key.indexOf(removed.id+"→")===0||key.slice(-(removed.id.length+1))==="→"+removed.id)delete DRAFT.routeSegments[key]});normalizePosition();setDirty();renderTab()}
+function addStop(){var id=slug("new-stop"),previous=DRAFT.stops[DRAFT.stops.length-1];DRAFT.stops.push({id:id,name:"New stop",coords:previous?previous.coords.slice():[40,-84],type:"Waypoint",major:false,scheduledAt:"",projectedAt:"",timingState:"estimated",customerNote:"",internalNote:"",via:[]});expandedStopId=id;setDirty();renderTab()}
+function removeStop(index){if(DRAFT.stops.length<=2)return;var removed=DRAFT.stops.splice(index,1)[0];if(expandedStopId===removed.id)expandedStopId=null;Object.keys(DRAFT.routeSegments||{}).forEach(function(key){if(key.indexOf(removed.id+"→")===0||key.slice(-(removed.id.length+1))==="→"+removed.id)delete DRAFT.routeSegments[key]});normalizePosition();setDirty();renderTab()}
 function moveStop(from,to){if(to<0||to>=DRAFT.stops.length||from===to)return;var item=DRAFT.stops.splice(from,1)[0];DRAFT.stops.splice(to,0,item);normalizePosition();setDirty();renderTab()}
 function normalizePosition(){var pos=DRAFT.currentPosition||{},ids=DRAFT.stops.map(function(s){return s.id});if(pos.mode==="stop"&&ids.indexOf(pos.stopId)>=0)return;if(pos.mode==="leg"){var i=ids.indexOf(pos.fromStopId);if(i>=0&&ids[i+1]===pos.toStopId)return}DRAFT.currentPosition={mode:"stop",stopId:DRAFT.stops[0].id}}
 function saveStopLocation(stop){var name=String(stop.name||"").trim();if(!name){APP.toast("Give the stop a name first");return}var locations=storageGet(LS_LOCATIONS);locations[name]={coords:stop.coords.slice(),type:stop.type,major:!!stop.major};if(storageSet(LS_LOCATIONS,locations)){APP.toast("Location saved");renderTab()}else APP.toast("Browser storage is unavailable — export locations instead")}
@@ -1336,8 +1394,8 @@ function renderExport(body){
   var portableTools=h("div","toolbar"),exportButton=button("↓ Export route JSON","blue",exportRoute),importLabel=h("label","button file-label","↑ Import route JSON"),importFile=input("file","");importFile.accept=".json,application/json";importFile.addEventListener("change",function(){importRoute(importFile)});importLabel.appendChild(importFile);portableTools.append(exportButton,importLabel);portable.appendChild(portableTools);body.appendChild(portable);
   var saved=section("Saved routes in this browser",storageWorks()?"Convenient on this computer; portable JSON remains the reliable backup.":"Chrome has blocked local storage for this file. Use route JSON instead."),row=h("div","saved-list"),name=input("text",""),routes=storageGet(LS_ROUTES);
   name.placeholder="Route name";var options=[{value:"",label:"— saved routes —"}].concat(Object.keys(routes).sort().map(function(key){return {value:key,label:key}})),routeSelect=select(options,"");
-  row.append(field("Save current route as",name),button("Save","small blue",function(){var routeName=name.value.trim()||DRAFT.trainId||"Route";var all=storageGet(LS_ROUTES);all[routeName]=DRAFT;if(storageSet(LS_ROUTES,all)){APP.toast("Route saved");renderTab()}else APP.toast("Browser storage is unavailable")}),h("span","",""));saved.appendChild(row);
-  var openTools=h("div","toolbar"),open=button("Open selected","",function(){if(routeSelect.value&&routes[routeSelect.value]){DRAFT=APP.clone(routes[routeSelect.value]);APP.ensureDefaultSegments(DRAFT);setDirty();setActiveTab("shipment");APP.toast("Saved route opened")}}),del=button("Delete selected","danger",function(){if(!routeSelect.value)return;var all=storageGet(LS_ROUTES);delete all[routeSelect.value];storageSet(LS_ROUTES,all);renderTab()});
+  row.append(field("Save current route as",name),button("Save","small blue",function(){var routeName=name.value.trim()||DRAFT.trainId||"Route";var all=storageGet(LS_ROUTES);all[routeName]=DRAFT;if(storageSet(LS_ROUTES,all)){activeSavedRouteName=routeName;APP.toast("Route saved");renderTab()}else APP.toast("Browser storage is unavailable")}),h("span","",""));saved.appendChild(row);
+  var openTools=h("div","toolbar"),open=button("Open selected","",function(){if(routeSelect.value&&routes[routeSelect.value]){DRAFT=APP.clone(routes[routeSelect.value]);APP.ensureDefaultSegments(DRAFT);activeSavedRouteName=routeSelect.value;expandedStopId=null;manualTimestampOverride=false;setDirty();setActiveTab("quick");APP.toast("Saved route opened")}}),del=button("Delete selected","danger",function(){if(!routeSelect.value)return;var all=storageGet(LS_ROUTES);delete all[routeSelect.value];storageSet(LS_ROUTES,all);if(activeSavedRouteName===routeSelect.value)activeSavedRouteName=null;renderTab()});
   openTools.append(routeSelect,open,del);saved.appendChild(openTools);body.appendChild(saved);
 }
 function jsonDownload(value,filename){
@@ -1350,7 +1408,7 @@ function readJsonFile(fileInput,callback){
   var file=fileInput.files&&fileInput.files[0];if(!file)return;if(file.size>5*1024*1024){APP.toast("File is larger than 5 MB");fileInput.value="";return}
   var reader=new FileReader();reader.onload=function(){try{callback(JSON.parse(reader.result))}catch(error){APP.toast("That is not a valid JSON file")}};reader.onerror=function(){APP.toast("The file could not be read")};reader.readAsText(file);fileInput.value="";
 }
-function importRoute(fileInput){readJsonFile(fileInput,function(raw){try{var migrated=migrate(raw),errors=APP.validate(migrated);if(errors.length)throw new Error(errors.join(" "));DRAFT=migrated;APP.ensureDefaultSegments(DRAFT);setDirty();setActiveTab("shipment");APP.toast(raw.schemaVersion===2?"Route imported":"Older route imported and upgraded")}catch(error){APP.toast(error.message||"Route file is invalid")}})}
+function importRoute(fileInput){readJsonFile(fileInput,function(raw){try{var migrated=migrate(raw),errors=APP.validate(migrated);if(errors.length)throw new Error(errors.join(" "));DRAFT=migrated;APP.ensureDefaultSegments(DRAFT);activeSavedRouteName=null;expandedStopId=null;manualTimestampOverride=false;setDirty();setActiveTab("quick");APP.toast(raw.schemaVersion===2?"Route imported":"Older route imported and upgraded")}catch(error){APP.toast(error.message||"Route file is invalid")}})}
 function importLocations(fileInput){readJsonFile(fileInput,function(raw){if(!raw||typeof raw!=="object"||Array.isArray(raw)){APP.toast("Location file is invalid");return}var current=storageGet(LS_LOCATIONS),count=0;Object.keys(raw).slice(0,500).forEach(function(name){var record=raw[name],coords=Array.isArray(record)?record:record&&record.coords;if(coords&&isFinite(coords[0])&&isFinite(coords[1])&&coords[0]>=-90&&coords[0]<=90&&coords[1]>=-180&&coords[1]<=180){current[APP.clean(name,200)]={coords:[Number(coords[0]),Number(coords[1])],type:APP.clean(record.type||"Waypoint",80),major:!!record.major};count++}});if(storageSet(LS_LOCATIONS,current)){APP.toast("Imported "+count+" locations");renderTab()}else APP.toast("Browser storage is unavailable")})}
 function legacyDate(value,year){
   if(!value)return "";var months={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
@@ -1389,7 +1447,7 @@ function uniqueLegacyId(name,index){return String(name||"stop").toLowerCase().re
 function cleanGeometry(value,limit){var points=[];if(!Array.isArray(value))return points;value.slice(0,limit||20000).forEach(function(point){if(Array.isArray(point)&&isFinite(point[0])&&isFinite(point[1])&&Number(point[0])>=-90&&Number(point[0])<=90&&Number(point[1])>=-180&&Number(point[1])<=180)points.push([Number(point[0]),Number(point[1])])});return points}
 function normalizeStop(stop,index){stop=stop&&typeof stop==="object"?stop:{};return {id:APP.clean(stop.id||uniqueLegacyId(stop.name,index),80),name:APP.clean(stop.name||"Stop "+(index+1),200),coords:[Number(stop.coords&&stop.coords[0]),Number(stop.coords&&stop.coords[1])],type:APP.clean(stop.type||"Waypoint",80),major:!!stop.major,scheduledAt:APP.clean(stop.scheduledAt||"",40),projectedAt:APP.clean(stop.projectedAt||"",40),timingState:["actual","estimated","none"].indexOf(stop.timingState)>=0?stop.timingState:"none",customerNote:APP.clean(stop.customerNote||"",2000),internalNote:APP.clean(stop.internalNote||"",2000),via:cleanGeometry(stop.via,500)}}
 function downloadCustomer(){
-  var errors=APP.validate(DRAFT);if(errors.length){showErrors(errors);return}
+  var errors=APP.validate(DRAFT);if(errors.length){showErrors(errors);return false}
   APP.setData(DRAFT,false);
   var customer=APP.clone(DRAFT);customer.stops.forEach(function(stop){delete stop.internalNote});
   var documentClone=document.documentElement.cloneNode(true),body=documentClone.querySelector("body");body.classList.add("customer");body.removeAttribute("style");
@@ -1399,7 +1457,7 @@ function downloadCustomer(){
   var dataNode=documentClone.querySelector("#shipmentData"),safeJson=JSON.stringify(customer,null,2).replace(/</g,"\\u003c").replace(/-->/g,"--\\u003e");dataNode.textContent=safeJson;
   var title=documentClone.querySelector("title");if(title)title.textContent=(customer.trainId||"Shipment")+" — Shipment Tracker";
   var htmlText="<!DOCTYPE html>\n"+documentClone.outerHTML,blob=new Blob([htmlText],{type:"text/html"}),url=URL.createObjectURL(blob),anchor=document.createElement("a"),date=String(customer.updatedAt||"").slice(0,10)||"snapshot";
-  anchor.href=url;anchor.download="shipment_"+safeName(customer.trainId)+"_"+date+".html";anchor.click();setTimeout(function(){URL.revokeObjectURL(url)},1200);APP.toast("Customer snapshot downloaded");
+  anchor.href=url;anchor.download="shipment_"+safeName(customer.trainId)+"_"+date+".html";anchor.click();setTimeout(function(){URL.revokeObjectURL(url)},1200);APP.toast("Customer snapshot downloaded");return true;
 }
 var graphCache=null;
 function graph(){
@@ -1427,7 +1485,7 @@ function autoRoute(options){
   setDirty();if(!options||!options.silent)APP.toast(done+" leg"+(done===1?"":"s")+" routed"+(skipped?" · "+skipped+" skipped":""));return {done:done,skipped:skipped};
 }
 APP.byId("openEditorButton").addEventListener("click",open);APP.byId("closeEditorButton").addEventListener("click",close);APP.byId("cancelEditorButton").addEventListener("click",close);APP.byId("editorShade").addEventListener("click",close);
-APP.byId("applyEditorButton").addEventListener("click",apply);APP.byId("editorTabs").addEventListener("click",function(event){var tab=event.target.closest("[data-tab]");if(tab)setActiveTab(tab.dataset.tab)});
+APP.byId("applyEditorButton").addEventListener("click",saveAndDownload);APP.byId("saveOnlyButton").addEventListener("click",saveOnly);APP.byId("editorTabs").addEventListener("click",function(event){var tab=event.target.closest("[data-tab]");if(tab)setActiveTab(tab.dataset.tab)});
 document.addEventListener("keydown",function(event){
   var panel=APP.byId("editorPanel");if(!panel.classList.contains("open"))return;
   if(event.key==="Escape"){close();return}
