@@ -920,9 +920,7 @@ function geometryForLeg(data,index){
   var a=data.stops[index],b=data.stops[index+1],key=legKey(a.id,b.id);
   var stored=data.routeSegments&&data.routeSegments[key];
   if(validGeometry(stored,a,b))return stored;
-  var baked=Array.isArray(BAKED_ROUTE_SEGMENTS)?BAKED_ROUTE_SEGMENTS[index+1]:null;
-  if(validGeometry(baked,a,b))return baked;
-  return [a.coords].concat(Array.isArray(b.via)?b.via:[],[b.coords]);
+  return [];
 }
 function pointAt(points,progress){
   progress=clamp(Number(progress)||0,0,1);
@@ -961,8 +959,9 @@ function positionInfo(data){
     index=stops.findIndex(function(s,i){return i<stops.length-1&&s.id===pos.fromStopId&&stops[i+1].id===pos.toStopId});
     if(index>=0){
       progress=clamp(Number(pos.progress)||0,0,1);
-      point=pointAt(geometryForLeg(data,index),progress);
-      label="Between "+stops[index].name+" and "+stops[index+1].name;
+      var geometry=geometryForLeg(data,index);
+      point=geometry.length>1?pointAt(geometry,progress):stops[index].coords;
+      label=geometry.length>1?"Between "+stops[index].name+" and "+stops[index+1].name:"Rail route unavailable from "+stops[index].name+" to "+stops[index+1].name;
       return {mode:"leg",index:index,progress:progress,point:point,label:label};
     }
   }
@@ -994,10 +993,6 @@ function addStat(container,label,value,sub){
 }
 function ensureDefaultSegments(data){
   data.routeSegments=data.routeSegments&&typeof data.routeSegments==="object"&&!Array.isArray(data.routeSegments)?data.routeSegments:{};
-  for(var i=0;i<data.stops.length-1;i++){
-    var key=legKey(data.stops[i].id,data.stops[i+1].id),baked=Array.isArray(BAKED_ROUTE_SEGMENTS)?BAKED_ROUTE_SEGMENTS[i+1]:null;
-    if(!data.routeSegments[key]&&validGeometry(baked,data.stops[i],data.stops[i+1]))data.routeSegments[key]=baked;
-  }
 }
 function initializeMap(){
   map=L.map("map",{zoomControl:true,attributionControl:true,minZoom:4,maxZoom:10,maxBounds:[[23,-128],[51,-64]],maxBoundsViscosity:.85,zoomSnap:.25,zoomDelta:.5,preferCanvas:true});
@@ -1019,6 +1014,7 @@ function renderMap(data,metrics){
   routeGroup.clearLayers();
   var info=metrics.position,allPoints=[];
   metrics.legs.forEach(function(leg,i){
+    if(leg.geometry.length<2)return;
     allPoints=allPoints.concat(i?leg.geometry.slice(1):leg.geometry);
     if(info.mode==="leg"&&i===info.index){
       var pieces=splitGeometry(leg.geometry,info.progress);
@@ -1120,7 +1116,7 @@ function validate(data){
 function setData(data,fit){DATA=clone(data);window.NS_APP.data=DATA;render(DATA,fit)}
 function toast(message){var node=byId("toast");node.textContent=message;node.classList.add("show");clearTimeout(toast.timer);toast.timer=setTimeout(function(){node.classList.remove("show")},2400)}
 function init(){
-  DATA=parseData();ensureDefaultSegments(DATA);initializeMap();render(DATA,true);
+  DATA=parseData();ensureDefaultSegments(DATA);if(window.NS_RAIL_ROUTER)window.NS_RAIL_ROUTER.routeData(DATA);initializeMap();render(DATA,true);
   byId("fitRouteButton").addEventListener("click",function(){if(fitBounds&&fitBounds.isValid())map.fitBounds(fitBounds,{padding:[46,46],maxZoom:7})});
   window.addEventListener("resize",function(){if(map)map.invalidateSize()});
 }
@@ -1190,6 +1186,8 @@ function open(){
 function close(){APP.byId("editorPanel").classList.remove("open");APP.byId("editorShade").classList.remove("open");document.body.style.overflow="";APP.byId("openEditorButton").focus()}
 function apply(){
   var errors=APP.validate(DRAFT);if(errors.length){showErrors(errors);return false}
+  var routed=autoRoute({silent:true});
+  if(routed.skipped){showErrors([routed.skipped+" route leg"+(routed.skipped===1?"":"s")+" could not follow the embedded NS track. Check the stop coordinates and try again."]);return false}
   APP.setData(DRAFT,true);dirty=false;APP.byId("draftState").textContent="Changes applied";return true;
 }
 function routeStorageName(){
@@ -1210,7 +1208,7 @@ function prepareAutomaticTimestamp(){
 function saveOnly(){if(!apply())return;if(saveWorkingRoute())APP.toast("Working route saved as "+activeSavedRouteName);else APP.toast("Browser storage is unavailable — export route JSON instead")}
 function saveAndDownload(){
   if(!prepareAutomaticTimestamp())return;if(!apply())return;
-  var saved=saveWorkingRoute();if(downloadCustomer()){close();APP.toast(saved?"Update saved and customer file downloaded":"Customer file downloaded · browser storage unavailable")}
+  var saved=saveWorkingRoute();if(downloadCustomer(true)){close();APP.toast(saved?"Update saved and customer file downloaded":"Customer file downloaded · browser storage unavailable")}
 }
 function showErrors(errors){
   quickErrors=errors.slice();activeTab="quick";setActiveTab("quick");APP.byId("editorBody").scrollTop=0;
@@ -1448,8 +1446,9 @@ function migrate(raw){
 function uniqueLegacyId(name,index){return String(name||"stop").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,32)+"-"+(index+1)}
 function cleanGeometry(value,limit){var points=[];if(!Array.isArray(value))return points;value.slice(0,limit||20000).forEach(function(point){if(Array.isArray(point)&&isFinite(point[0])&&isFinite(point[1])&&Number(point[0])>=-90&&Number(point[0])<=90&&Number(point[1])>=-180&&Number(point[1])<=180)points.push([Number(point[0]),Number(point[1])])});return points}
 function normalizeStop(stop,index){stop=stop&&typeof stop==="object"?stop:{};return {id:APP.clean(stop.id||uniqueLegacyId(stop.name,index),80),name:APP.clean(stop.name||"Stop "+(index+1),200),coords:[Number(stop.coords&&stop.coords[0]),Number(stop.coords&&stop.coords[1])],type:APP.clean(stop.type||"Waypoint",80),major:!!stop.major,scheduledAt:APP.clean(stop.scheduledAt||"",40),projectedAt:APP.clean(stop.projectedAt||"",40),timingState:["actual","estimated","none"].indexOf(stop.timingState)>=0?stop.timingState:"none",customerNote:APP.clean(stop.customerNote||"",2000),internalNote:APP.clean(stop.internalNote||"",2000),via:cleanGeometry(stop.via,500)}}
-function downloadCustomer(){
+function downloadCustomer(alreadyRouted){
   var errors=APP.validate(DRAFT);if(errors.length){showErrors(errors);return false}
+  if(alreadyRouted!==true){var routed=autoRoute({silent:true});if(routed.skipped){showErrors([routed.skipped+" route leg"+(routed.skipped===1?"":"s")+" could not follow the embedded NS track. Check the stop coordinates and try again."]);return false}}
   APP.setData(DRAFT,false);
   var customer=APP.clone(DRAFT);customer.stops.forEach(function(stop){delete stop.internalNote});
   var documentClone=document.documentElement.cloneNode(true),body=documentClone.querySelector("body");body.classList.add("customer");body.removeAttribute("style");
@@ -1478,14 +1477,19 @@ function shortest(g,source,target){
   if(dist[target]==null)return null;var path=[target],cursor=target;while(cursor!==source){cursor=prev[cursor];if(cursor==null)return null;path.push(cursor)}return path.reverse();
 }
 function routeBetween(g,aPoint,bPoint){
-  var straight=distanceKm(aPoint,bPoint),best=null,A=nearest(g,aPoint,3),B=nearest(g,bPoint,3);
+  var straight=distanceKm(aPoint,bPoint),best=null,A=nearest(g,aPoint,3).filter(function(id){return distanceKm(aPoint,g.nodes[id])<=40}),B=nearest(g,bPoint,3).filter(function(id){return distanceKm(bPoint,g.nodes[id])<=40});
   A.forEach(function(a){B.forEach(function(b){if(a===b)return;var path=shortest(g,a,b);if(!path||path.length<2)return;var geometry=[],length=0,ok=true;for(var i=0;i<path.length-1;i++){var edge=(g.adj[path[i]]||[]).find(function(item){return item[0]===path[i+1]});if(!edge){ok=false;break}geometry=geometry.length?geometry.concat(edge[2].slice(1)):edge[2].slice();length+=edge[1]}if(ok&&length<=Math.max(straight*3,straight+15)&&(!best||length<best.length))best={length:length,geometry:geometry}})});return best?best.geometry.map(function(point){return [Number(point[0].toFixed(5)),Number(point[1].toFixed(5))]}):null;
 }
+function routeDataOnNetwork(data){
+  var g=graph(),done=0,skipped=0;data.routeSegments={};
+  for(var i=0;i<data.stops.length-1;i++){var a=data.stops[i],b=data.stops[i+1],key=APP.legKey(a.id,b.id),aNear=g.nodes[nearest(g,a.coords,1)[0]],bNear=g.nodes[nearest(g,b.coords,1)[0]],far=function(c,p){return !c||Math.abs(c[0]-p[0])>.5||Math.abs(c[1]-p[1])>.5};if(far(aNear,a.coords)||far(bNear,b.coords)){skipped++;continue}var geometry=routeBetween(g,a.coords,b.coords);if(geometry){data.routeSegments[key]=geometry;done++}else{skipped++}}
+  return {done:done,skipped:skipped};
+}
 function autoRoute(options){
-  var g=graph(),done=0,skipped=0;DRAFT.routeSegments=DRAFT.routeSegments||{};
-  for(var i=0;i<DRAFT.stops.length-1;i++){var a=DRAFT.stops[i],b=DRAFT.stops[i+1],key=APP.legKey(a.id,b.id),toledoCleveland=(a.name==="Toledo, OH"&&b.name==="Cleveland, OH")||(a.name==="Cleveland, OH"&&b.name==="Toledo, OH");if(toledoCleveland){DRAFT.routeSegments[key]=[a.coords.slice(),b.coords.slice()];done++;continue}var aNear=g.nodes[nearest(g,a.coords,1)[0]],bNear=g.nodes[nearest(g,b.coords,1)[0]],far=function(c,p){return !c||Math.abs(c[0]-p[0])>.5||Math.abs(c[1]-p[1])>.5};if(far(aNear,a.coords)||far(bNear,b.coords)){delete DRAFT.routeSegments[key];skipped++;continue}var geometry=routeBetween(g,a.coords,b.coords);if(geometry){geometry[0]=a.coords.slice();geometry[geometry.length-1]=b.coords.slice();DRAFT.routeSegments[key]=geometry;done++}else{delete DRAFT.routeSegments[key];skipped++}}
+  var result=routeDataOnNetwork(DRAFT),done=result.done,skipped=result.skipped;
   setDirty();if(!options||!options.silent)APP.toast(done+" leg"+(done===1?"":"s")+" routed"+(skipped?" · "+skipped+" skipped":""));return {done:done,skipped:skipped};
 }
+window.NS_RAIL_ROUTER={routeData:routeDataOnNetwork};
 APP.byId("openEditorButton").addEventListener("click",open);APP.byId("closeEditorButton").addEventListener("click",close);APP.byId("cancelEditorButton").addEventListener("click",close);APP.byId("editorShade").addEventListener("click",close);
 APP.byId("applyEditorButton").addEventListener("click",saveAndDownload);APP.byId("saveOnlyButton").addEventListener("click",saveOnly);APP.byId("editorTabs").addEventListener("click",function(event){var tab=event.target.closest("[data-tab]");if(tab)setActiveTab(tab.dataset.tab)});
 document.addEventListener("keydown",function(event){
