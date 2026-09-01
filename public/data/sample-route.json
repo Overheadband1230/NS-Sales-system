@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 2,
+  "carrier": "Norfolk Southern · Shipment Tracker",
+  "trainId": "DEMO-24V",
+  "customer": "Demo Logistics",
+  "commodity": "Intermodal containers",
+  "cars": 72,
+  "updatedAt": "2026-09-01T09:00",
+  "timezone": "ET",
+  "currentPosition": { "mode": "leg", "fromStopId": "cleveland", "toStopId": "conway", "progress": 0.35 },
+  "routeSegments": {},
+  "stops": [
+    { "id": "chicago", "name": "Chicago, IL", "coords": [41.85, -87.65], "type": "Origin", "major": true, "scheduledAt": "2026-08-31T06:00", "projectedAt": "2026-08-31T06:12", "timingState": "actual", "customerNote": "Departed origin.", "via": [] },
+    { "id": "cleveland", "name": "Cleveland, OH", "coords": [41.505, -81.681], "type": "Waypoint", "major": false, "scheduledAt": "2026-09-01T04:00", "projectedAt": "2026-09-01T05:10", "timingState": "actual", "customerNote": "Crew change complete.", "via": [] },
+    { "id": "conway", "name": "Conway Yard, PA", "coords": [40.664, -80.24], "type": "Classification Yard", "major": true, "scheduledAt": "2026-09-01T11:00", "projectedAt": "2026-09-01T12:20", "timingState": "estimated", "customerNote": "Planned re-block for eastbound movement.", "via": [] },
+    { "id": "philadelphia", "name": "Philadelphia, PA", "coords": [39.952, -75.163], "type": "Destination", "major": false, "scheduledAt": "2026-09-02T03:00", "projectedAt": "2026-09-02T04:15", "timingState": "estimated", "customerNote": "Final destination.", "via": [] }
+  ]
+}

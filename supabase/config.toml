@@ -1,0 +1,34 @@
+project_id = "ns-online-shipment-tracker"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 17
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:5173/NS-Sales-system/"
+additional_redirect_urls = ["http://127.0.0.1:5173/NS-Sales-system/**", "https://overheadband1230.github.io/NS-Sales-system/**"]
+enable_signup = false
+
+[functions.get-public-shipment]
+verify_jwt = false
+
+[functions.manage-share-link]
+verify_jwt = true
+
+[functions.publish-shipment]
+verify_jwt = true
+
+[functions.invite-staff]
+verify_jwt = true
