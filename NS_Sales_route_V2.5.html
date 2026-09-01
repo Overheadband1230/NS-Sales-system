@@ -993,6 +993,11 @@ function addStat(container,label,value,sub){
 }
 function ensureDefaultSegments(data){
   data.routeSegments=data.routeSegments&&typeof data.routeSegments==="object"&&!Array.isArray(data.routeSegments)?data.routeSegments:{};
+  if(!Array.isArray(BAKED_ROUTE_SEGMENTS))return;
+  for(var i=0;i<data.stops.length-1;i++){
+    var a=data.stops[i],b=data.stops[i+1],key=legKey(a.id,b.id),geometry=BAKED_ROUTE_SEGMENTS[i+1];
+    if(!validGeometry(data.routeSegments[key],a,b)&&validGeometry(geometry,a,b))data.routeSegments[key]=geometry;
+  }
 }
 function initializeMap(){
   map=L.map("map",{zoomControl:true,attributionControl:true,minZoom:4,maxZoom:10,maxBounds:[[23,-128],[51,-64]],maxBoundsViscosity:.85,zoomSnap:.25,zoomDelta:.5,preferCanvas:true});
@@ -1481,8 +1486,9 @@ function routeBetween(g,aPoint,bPoint){
   A.forEach(function(a){B.forEach(function(b){if(a===b)return;var path=shortest(g,a,b);if(!path||path.length<2)return;var geometry=[],length=0,ok=true;for(var i=0;i<path.length-1;i++){var edge=(g.adj[path[i]]||[]).find(function(item){return item[0]===path[i+1]});if(!edge){ok=false;break}geometry=geometry.length?geometry.concat(edge[2].slice(1)):edge[2].slice();length+=edge[1]}if(ok&&length<=Math.max(straight*3,straight+15)&&(!best||length<best.length))best={length:length,geometry:geometry}})});return best?best.geometry.map(function(point){return [Number(point[0].toFixed(5)),Number(point[1].toFixed(5))]}):null;
 }
 function routeDataOnNetwork(data){
-  var g=graph(),done=0,skipped=0;data.routeSegments={};
-  for(var i=0;i<data.stops.length-1;i++){var a=data.stops[i],b=data.stops[i+1],key=APP.legKey(a.id,b.id),aNear=g.nodes[nearest(g,a.coords,1)[0]],bNear=g.nodes[nearest(g,b.coords,1)[0]],far=function(c,p){return !c||Math.abs(c[0]-p[0])>.5||Math.abs(c[1]-p[1])>.5};if(far(aNear,a.coords)||far(bNear,b.coords)){skipped++;continue}var geometry=routeBetween(g,a.coords,b.coords);if(geometry){data.routeSegments[key]=geometry;done++}else{skipped++}}
+  var g=graph(),done=0,skipped=0,existing=data.routeSegments&&typeof data.routeSegments==="object"&&!Array.isArray(data.routeSegments)?data.routeSegments:{},next={};
+  for(var i=0;i<data.stops.length-1;i++){var a=data.stops[i],b=data.stops[i+1],key=APP.legKey(a.id,b.id),saved=existing[key],aNear=g.nodes[nearest(g,a.coords,1)[0]],bNear=g.nodes[nearest(g,b.coords,1)[0]],far=function(c,p){return !c||Math.abs(c[0]-p[0])>.5||Math.abs(c[1]-p[1])>.5},geometry=null;if(!far(aNear,a.coords)&&!far(bNear,b.coords))geometry=routeBetween(g,a.coords,b.coords);if(geometry){next[key]=geometry;done++}else if(APP.validGeometry(saved,a,b)){next[key]=saved;done++}else{skipped++}}
+  data.routeSegments=next;
   return {done:done,skipped:skipped};
 }
 function autoRoute(options){
