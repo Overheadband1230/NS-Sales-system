@@ -1141,6 +1141,7 @@ var BUILTIN_LOCATIONS={
  "Cleveland, OH":{coords:[41.505,-81.681],type:"Waypoint"},"Conway Yard, PA":{coords:[40.664,-80.24],type:"Classification Yard",major:true},
  "Altoona, PA":{coords:[40.519,-78.395],type:"Waypoint"},"Harrisburg, PA":{coords:[40.273,-76.884],type:"Waypoint"},
  "Philadelphia, PA":{coords:[39.952,-75.163],type:"Destination"},"Toledo, OH":{coords:[41.664,-83.555],type:"Waypoint"},
+ "Elkhart, IN":{coords:[41.6692,-86.009],type:"Classification Yard",major:true},"Abrams, PA":{coords:[40.11476,-75.3782],type:"Classification Yard",major:true},
  "Pittsburgh, PA":{coords:[40.441,-79.996],type:"Waypoint"},"Roanoke, VA":{coords:[37.271,-79.941],type:"Waypoint"},
  "Norfolk, VA":{coords:[36.846,-76.285],type:"Destination"},"Atlanta, GA":{coords:[33.749,-84.388],type:"Waypoint"},
  "Birmingham, AL":{coords:[33.521,-86.809],type:"Waypoint"},"Memphis, TN":{coords:[35.149,-90.049],type:"Waypoint"},
@@ -1156,6 +1157,7 @@ var BUILTIN_LOCATIONS={
  "Charlotte, NC":{coords:[35.227,-80.843],type:"Waypoint"},"Greensboro, NC":{coords:[36.073,-79.792],type:"Waypoint"}
 };
 var COMMON_CORRIDORS=[
+ {id:"crude-chicago-philadelphia",name:"Crude unit train · Chicago → Philadelphia",forwardSymbol:"Crude unit train",reverseSymbol:"Crude unit train",oneWay:true,stops:["Chicago, IL","Elkhart, IN","Toledo, OH","Cleveland, OH","Conway Yard, PA","Altoona, PA","Harrisburg, PA","Abrams, PA","Philadelphia, PA"]},
  {id:"atlanta-croxton",name:"Atlanta ↔ Croxton (North Jersey)",forwardSymbol:"24X",reverseSymbol:"25A",stops:["Atlanta, GA","Charlotte, NC","Greensboro, NC","Roanoke, VA","Harrisburg, PA","Bethlehem, PA","Croxton, NJ"]},
  {id:"chicago-croxton",name:"Chicago 47th ↔ Croxton",forwardSymbol:"20X",reverseSymbol:"23G / 29G",stops:["Chicago 47th, IL","Fort Wayne, IN","Toledo, OH","Cleveland, OH","Conway Yard, PA","Harrisburg, PA","Bethlehem, PA","Croxton, NJ"]},
  {id:"chicago-harrisburg",name:"Chicago 47th ↔ Harrisburg",forwardSymbol:"22X",reverseSymbol:"23G / 25G / 27G",stops:["Chicago 47th, IL","Fort Wayne, IN","Toledo, OH","Cleveland, OH","Conway Yard, PA","Harrisburg, PA"]},
@@ -1286,15 +1288,15 @@ function renderStops(body){
   body.appendChild(locationManager());
 }
 function commonCorridorLibrary(){
-  var card=section("Common NS corridor presets","Load a frequently published intermodal lane in either direction. Stops are planning waypoints; the route is then snapped to the embedded NS rail network.");
+  var card=section("Common NS route presets","Load a frequently used route. Stops are planning waypoints; the route is then snapped to the embedded NS rail network.");
   var corridor=COMMON_CORRIDORS.find(function(item){return item.id===commonCorridorId})||COMMON_CORRIDORS[0];
   var corridorSelect=select(COMMON_CORRIDORS.map(function(item){return {value:item.id,label:item.name}}),corridor.id);
   corridorSelect.addEventListener("change",function(){commonCorridorId=corridorSelect.value;commonDirection="forward";renderTab()});
   var first=corridor.stops[0],last=corridor.stops[corridor.stops.length-1];
-  var directionSelect=select([
-    {value:"forward",label:first+" → "+last+" · "+corridor.forwardSymbol},
-    {value:"reverse",label:last+" → "+first+" · "+corridor.reverseSymbol}
-  ],commonDirection);
+  var directions=[{value:"forward",label:first+" → "+last+" · "+corridor.forwardSymbol}];
+  if(!corridor.oneWay)directions.push({value:"reverse",label:last+" → "+first+" · "+corridor.reverseSymbol});
+  if(corridor.oneWay)commonDirection="forward";
+  var directionSelect=select(directions,commonDirection);
   directionSelect.addEventListener("change",function(){commonDirection=directionSelect.value;renderTab()});
   var form=grid(),load=button("Load this route","primary",function(){loadCommonCorridor(corridor,commonDirection)});
   form.append(field("Published corridor",corridorSelect,true),field("Direction and train symbol",directionSelect,true));
@@ -1481,7 +1483,7 @@ function routeBetween(g,aPoint,bPoint){
 }
 function autoRoute(options){
   var g=graph(),done=0,skipped=0;DRAFT.routeSegments=DRAFT.routeSegments||{};
-  for(var i=0;i<DRAFT.stops.length-1;i++){var a=DRAFT.stops[i],b=DRAFT.stops[i+1],key=APP.legKey(a.id,b.id),aNear=g.nodes[nearest(g,a.coords,1)[0]],bNear=g.nodes[nearest(g,b.coords,1)[0]],far=function(c,p){return !c||Math.abs(c[0]-p[0])>.5||Math.abs(c[1]-p[1])>.5};if(far(aNear,a.coords)||far(bNear,b.coords)){delete DRAFT.routeSegments[key];skipped++;continue}var geometry=routeBetween(g,a.coords,b.coords);if(geometry){geometry[0]=a.coords.slice();geometry[geometry.length-1]=b.coords.slice();DRAFT.routeSegments[key]=geometry;done++}else{delete DRAFT.routeSegments[key];skipped++}}
+  for(var i=0;i<DRAFT.stops.length-1;i++){var a=DRAFT.stops[i],b=DRAFT.stops[i+1],key=APP.legKey(a.id,b.id),toledoCleveland=(a.name==="Toledo, OH"&&b.name==="Cleveland, OH")||(a.name==="Cleveland, OH"&&b.name==="Toledo, OH");if(toledoCleveland){DRAFT.routeSegments[key]=[a.coords.slice(),b.coords.slice()];done++;continue}var aNear=g.nodes[nearest(g,a.coords,1)[0]],bNear=g.nodes[nearest(g,b.coords,1)[0]],far=function(c,p){return !c||Math.abs(c[0]-p[0])>.5||Math.abs(c[1]-p[1])>.5};if(far(aNear,a.coords)||far(bNear,b.coords)){delete DRAFT.routeSegments[key];skipped++;continue}var geometry=routeBetween(g,a.coords,b.coords);if(geometry){geometry[0]=a.coords.slice();geometry[geometry.length-1]=b.coords.slice();DRAFT.routeSegments[key]=geometry;done++}else{delete DRAFT.routeSegments[key];skipped++}}
   setDirty();if(!options||!options.silent)APP.toast(done+" leg"+(done===1?"":"s")+" routed"+(skipped?" · "+skipped+" skipped":""));return {done:done,skipped:skipped};
 }
 APP.byId("openEditorButton").addEventListener("click",open);APP.byId("closeEditorButton").addEventListener("click",close);APP.byId("cancelEditorButton").addEventListener("click",close);APP.byId("editorShade").addEventListener("click",close);
