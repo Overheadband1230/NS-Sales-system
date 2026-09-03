@@ -39,10 +39,10 @@ npm run test:e2e
 1. Create a Supabase project and install the Supabase CLI.
 2. Link the project, then apply `supabase/migrations/202609010001_online_tracker.sql` with `supabase db push`.
 3. Deploy all four functions with `supabase functions deploy`.
-4. Set `APP_SITE_URL` to `https://overheadband1230.github.io/NS-Sales-system/#/shipments`.
+4. Set `APP_SITE_URL` to `https://ns-sales-system.vercel.app/#/shipments`.
 5. If the hosted environment does not automatically expose suitable keys to functions, set `APP_PUBLISHABLE_KEY` and `APP_SECRET_KEY` as Supabase function secrets. `APP_SECRET_KEY` must be a server-side secret key.
-6. Set `APP_ALLOWED_ORIGINS` to a comma-separated allowlist if using an additional development or production origin.
-7. In Auth URL Configuration, set the site URL to the GitHub Pages site and allow `https://overheadband1230.github.io/NS-Sales-system/**` as a redirect URL.
+6. Set `APP_ALLOWED_ORIGINS` to `https://ns-sales-system.vercel.app`, plus any additional production origins separated by commas.
+7. In Auth URL Configuration, set the site URL to `https://ns-sales-system.vercel.app` and allow `https://ns-sales-system.vercel.app/**` as a redirect URL.
 8. Invite the first user from the Supabase dashboard. The auth trigger creates an inactive profile; activate the initial admin once in the SQL editor:
 
 ```sql
@@ -61,15 +61,17 @@ supabase db reset
 supabase test db
 ```
 
-## GitHub Pages
+## Vercel
 
-In repository settings:
+Connect this repository to a Vercel project, then configure:
 
-1. Set Pages **Build and deployment** to **GitHub Actions**.
-2. Add repository variables `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`.
-3. Push `online-app`. The workflow tests and builds before deploying `dist`.
+1. Set the production branch to `online-app`.
+2. Select the **Vite** framework preset.
+3. Leave the root directory blank, use `npm run build` as the build command, and use `dist` as the output directory.
+4. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` to the Production and Preview environments.
+5. Push `online-app`. Vercel builds and deploys the site automatically.
 
-The GitHub Pages bundle contains only static application code, map assets, and the Supabase publishable key. Shipment drafts and publications remain in Supabase behind grants, Row Level Security, and server functions.
+The Vercel bundle contains only static application code, map assets, and the Supabase publishable key. Shipment drafts and publications remain in Supabase behind grants, Row Level Security, and server functions.
 
 ## Data migration
 

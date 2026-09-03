@@ -17,8 +17,8 @@ port = 54323
 
 [auth]
 enabled = true
-site_url = "http://127.0.0.1:5173/NS-Sales-system/"
-additional_redirect_urls = ["http://127.0.0.1:5173/NS-Sales-system/**", "https://overheadband1230.github.io/NS-Sales-system/**"]
+site_url = "https://ns-sales-system.vercel.app"
+additional_redirect_urls = ["http://127.0.0.1:5173/**", "http://localhost:5173/**", "https://ns-sales-system.vercel.app/**"]
 enable_signup = false
 
 [functions.get-public-shipment]

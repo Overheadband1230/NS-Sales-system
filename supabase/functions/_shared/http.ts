@@ -1,7 +1,7 @@
 const defaults = [
   "http://127.0.0.1:5173",
   "http://localhost:5173",
-  "https://overheadband1230.github.io",
+  "https://ns-sales-system.vercel.app",
 ];
 
 function allowedOrigins(): string[] {
