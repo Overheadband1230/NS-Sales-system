@@ -117,6 +117,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--yellow); box-sha
 .range-label { grid-template-columns: auto 1fr auto; align-items: center; }
 .range-label input { padding: 0; }
 .editor-stack { display: grid; gap: 16px; }
+.route-setup-footer { display: flex; justify-content: center; padding: 8px 0 4px; }
+.route-setup-footer .button { min-width: 180px; }
 .stop-editor { padding: 22px; }
 .stop-editor header { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 13px; }
 .stop-editor header small { color: var(--muted); margin-top: 3px; }

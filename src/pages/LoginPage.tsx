@@ -68,7 +68,8 @@ export function LoginPage() {
         <h1>Shipment updates from anywhere.</h1>
         <p className="muted">Sign in with an invited staff account.</p>
         {!configured && <Notice tone="error">This deployment is not connected to Supabase. Add the project URL and publishable key before signing in.</Notice>}
-        {session && profile && !profile.active && <Notice tone="error">Your account exists but has not been activated by an administrator.</Notice>}
+        {!loading && session && !profile && <Notice tone="error">Your password was accepted, but this account does not have an active staff profile. An administrator must activate it.</Notice>}
+        {!loading && session && profile && !profile.active && <Notice tone="error">Your password was accepted, but this account has not been activated by an administrator.</Notice>}
         {message && <Notice tone="success">{message}</Notice>}
         {error && <Notice tone="error">{error}</Notice>}
         <form onSubmit={submit}>

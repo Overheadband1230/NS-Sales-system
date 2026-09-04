@@ -29,10 +29,10 @@ export function ShipmentMap({ route, showNetwork = true }: { route: RouteSchemaV
     <MapContainer className="shipment-map" center={[39.5, -86]} zoom={5} zoomControl attributionControl={false}>
       {states && <GeoJSON data={states} style={{ color: "#536171", weight: 0.7, fillColor: "#111820", fillOpacity: 0.95 }} />}
       {network.map(([from, to, geometry]) => (
-        <Polyline key={`${from}-${to}`} positions={geometry} pathOptions={{ color: "#263848", weight: 1, opacity: 0.45 }} interactive={false} />
+        <Polyline key={`${from}-${to}`} positions={geometry} pathOptions={{ color: "#f97316", weight: 1.5, opacity: 0.72 }} interactive={false} />
       ))}
       {legs.map((leg, index) => (
-        <Polyline key={`${route.stops[index]?.id || index}-rail`} positions={leg} pathOptions={{ color: "#f2c94c", weight: 4, opacity: 0.95 }} />
+        <Polyline key={`${route.stops[index]?.id || index}-rail`} positions={leg} pathOptions={{ color: "#3b82f6", weight: 4, opacity: 1 }} />
       ))}
       {route.stops.map((stop, index) => (
         <CircleMarker

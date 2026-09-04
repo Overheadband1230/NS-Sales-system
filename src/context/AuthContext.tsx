@@ -35,13 +35,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     supabase.auth.getSession().then(async ({ data }) => {
       setSession(data.session);
-      if (data.session) await refreshProfile();
-      setLoading(false);
-    });
+      try {
+        if (data.session) await refreshProfile();
+      } finally {
+        setLoading(false);
+      }
+    }).catch(() => setLoading(false));
     const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
-      if (nextSession) queueMicrotask(() => void refreshProfile());
-      else setProfile(null);
+      if (nextSession) {
+        setLoading(true);
+        queueMicrotask(() => void refreshProfile().finally(() => setLoading(false)));
+      } else {
+        setProfile(null);
+        setLoading(false);
+      }
     });
     return () => listener.subscription.unsubscribe();
   }, []);

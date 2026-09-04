@@ -60,6 +60,39 @@ export function localDateTime(date = new Date()): string {
   return shifted.toISOString().slice(0, 16);
 }
 
+function scheduleTimestamp(value: string): number | null {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
+  if (!match) return null;
+  const [, year, month, day, hour, minute] = match.map(Number);
+  const timestamp = Date.UTC(year, month - 1, day, hour, minute);
+  const parsed = new Date(timestamp);
+  return parsed.getUTCFullYear() === year
+    && parsed.getUTCMonth() === month - 1
+    && parsed.getUTCDate() === day
+    && parsed.getUTCHours() === hour
+    && parsed.getUTCMinutes() === minute
+    ? timestamp
+    : null;
+}
+
+export function shiftDownstreamSchedules(
+  stops: ShipmentStop[],
+  previousOriginSchedule: string,
+  nextOriginSchedule: string,
+): ShipmentStop[] {
+  const previous = scheduleTimestamp(previousOriginSchedule);
+  const next = scheduleTimestamp(nextOriginSchedule);
+  if (previous === null || next === null || previous === next) return stops;
+
+  const difference = next - previous;
+  return stops.map((stop, index) => {
+    if (index === 0 || !stop.scheduledAt) return stop;
+    const scheduled = scheduleTimestamp(stop.scheduledAt);
+    if (scheduled === null) return stop;
+    return { ...stop, scheduledAt: new Date(scheduled + difference).toISOString().slice(0, 16) };
+  });
+}
+
 function validCoordinates(value: unknown): value is Coordinates {
   return (
     Array.isArray(value) &&

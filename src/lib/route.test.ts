@@ -9,6 +9,7 @@ import {
   routeLegGeometries,
   routeMiles,
   sanitizeForCustomer,
+  shiftDownstreamSchedules,
   unroutedLegs,
   validateRoute,
 } from "./route";
@@ -108,5 +109,37 @@ describe("Route Schema v2 portability and publication safety", () => {
     });
     expect(migrated.currentPosition).toEqual({ mode: "stop", stopId: migrated.stops[1].id });
     expect(migrated.stops[1].timingState).toBe("estimated");
+  });
+});
+
+describe("route schedule updates", () => {
+  it("keeps downstream intervals when the origin schedule changes", () => {
+    const draft = route([41, -84], [41, -82]);
+    draft.stops = [
+      { ...draft.stops[0], scheduledAt: "2026-09-01T06:00" },
+      makeStop(1, { id: "middle", scheduledAt: "2026-09-01T18:30" }),
+      { ...draft.stops[1], scheduledAt: "2026-09-03T09:15" },
+    ];
+    const edited = draft.stops.map((stop, index) => index === 0
+      ? { ...stop, scheduledAt: "2026-09-02T08:30" }
+      : stop);
+
+    const shifted = shiftDownstreamSchedules(edited, "2026-09-01T06:00", "2026-09-02T08:30");
+
+    expect(shifted.map((stop) => stop.scheduledAt)).toEqual([
+      "2026-09-02T08:30",
+      "2026-09-02T21:00",
+      "2026-09-04T11:45",
+    ]);
+  });
+
+  it("leaves downstream schedules alone until both origin dates are valid", () => {
+    const stops = [
+      makeStop(0, { scheduledAt: "2026-09-01T06:00" }),
+      makeStop(1, { scheduledAt: "2026-09-02T06:00" }),
+    ];
+
+    expect(shiftDownstreamSchedules(stops, "", "2026-09-01T06:00")).toBe(stops);
+    expect(shiftDownstreamSchedules(stops, "2026-09-01T06:00", "")).toBe(stops);
   });
 });
