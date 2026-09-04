@@ -10,6 +10,7 @@ export function AppLayout() {
         <nav>
           <NavLink to="/shipments">Shipments</NavLink>
           {profile?.role === "admin" && <NavLink to="/settings/staff">Staff</NavLink>}
+          <NavLink to="/settings/account">Account</NavLink>
         </nav>
         <div className="account-menu"><span>{profile?.display_name || profile?.email}</span><button className="text-button" onClick={() => void signOut()}>Sign out</button></div>
       </header>

@@ -8,6 +8,7 @@ const DashboardPage = lazy(() => import("./pages/DashboardPage").then((module) =
 const ShipmentEditorPage = lazy(() => import("./pages/ShipmentEditorPage").then((module) => ({ default: module.ShipmentEditorPage })));
 const PublicTrackerPage = lazy(() => import("./pages/PublicTrackerPage").then((module) => ({ default: module.PublicTrackerPage })));
 const StaffPage = lazy(() => import("./pages/StaffPage").then((module) => ({ default: module.StaffPage })));
+const AccountPage = lazy(() => import("./pages/AccountPage").then((module) => ({ default: module.AccountPage })));
 
 function ProtectedRoute() {
   const { session, profile, loading } = useAuth();
@@ -35,6 +36,7 @@ export default function App() {
                 <Route path="/shipments" element={<DashboardPage />} />
                 <Route path="/shipments/new" element={<ShipmentEditorPage />} />
                 <Route path="/shipments/:id" element={<ShipmentEditorPage />} />
+                <Route path="/settings/account" element={<AccountPage />} />
                 <Route element={<AdminRoute />}><Route path="/settings/staff" element={<StaffPage />} /></Route>
               </Route>
             </Route>

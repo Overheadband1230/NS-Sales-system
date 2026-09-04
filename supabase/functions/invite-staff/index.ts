@@ -14,7 +14,7 @@ Deno.serve(async (request) => {
     if (action === "invite") {
       const email = String(body.email || "").trim().toLowerCase();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json(request, { ok: false, error: "Enter a valid email address" }, 400);
-      const redirectTo = Deno.env.get("APP_SITE_URL") || "https://ns-sales-system.vercel.app/#/shipments";
+      const redirectTo = Deno.env.get("APP_SITE_URL") || "https://ns.cgmoye.com/#/settings/account";
       const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo });
       if (error || !data.user) return json(request, { ok: false, error: error?.message || "Invitation failed" }, 400);
       await admin.from("profiles").upsert({ id: data.user.id, email, role, active: true, updated_at: new Date().toISOString() });

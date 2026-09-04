@@ -74,6 +74,8 @@ describe("Route Schema v2 portability and publication safety", () => {
     const draft = createBlankRoute();
     draft.trainId = "24V";
     draft.customer = "Example Customer";
+    draft.stops[0] = { ...draft.stops[0], name: "Chicago, IL", coords: [41.85, -87.65] };
+    draft.stops[1] = { ...draft.stops[1], name: "Philadelphia, PA", coords: [39.952, -75.163] };
     expect(validateRoute(draft)).toEqual([]);
     expect(migrateRoute(JSON.parse(JSON.stringify(draft)))).toEqual(draft);
   });

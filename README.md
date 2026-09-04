@@ -4,7 +4,7 @@ This branch contains the hosted, shared-workspace edition of the Norfolk Souther
 
 ## What is included
 
-- Invite-only email magic-link authentication
+- Invite-only password and email magic-link authentication
 - Shared Active, Delivered, and Archived shipment dashboard
 - Quick update, route setup, preview, and sharing views
 - Optimistic revision checks for simultaneous staff edits
@@ -12,6 +12,7 @@ This branch contains the hosted, shared-workspace edition of the Norfolk Souther
 - Revocable, expiring customer links that never expose internal notes
 - Route Schema v2 JSON import/export compatibility with the offline edition
 - Embedded U.S. state and NS rail-network geometry with no live map-tile dependency
+- City-first stop entry with 11,000+ preloaded U.S. places snapped to the embedded rail network
 
 ## Local web app
 
@@ -39,10 +40,10 @@ npm run test:e2e
 1. Create a Supabase project and install the Supabase CLI.
 2. Link the project, then apply `supabase/migrations/202609010001_online_tracker.sql` with `supabase db push`.
 3. Deploy all four functions with `supabase functions deploy`.
-4. Set `APP_SITE_URL` to `https://ns-sales-system.vercel.app/#/shipments`.
+4. Set `APP_SITE_URL` to `https://ns.cgmoye.com/#/settings/account` so new invitees can create a password.
 5. If the hosted environment does not automatically expose suitable keys to functions, set `APP_PUBLISHABLE_KEY` and `APP_SECRET_KEY` as Supabase function secrets. `APP_SECRET_KEY` must be a server-side secret key.
-6. Set `APP_ALLOWED_ORIGINS` to `https://ns-sales-system.vercel.app`, plus any additional production origins separated by commas.
-7. In Auth URL Configuration, set the site URL to `https://ns-sales-system.vercel.app` and allow `https://ns-sales-system.vercel.app/**` as a redirect URL.
+6. Set `APP_ALLOWED_ORIGINS` to `https://ns.cgmoye.com,https://ns-sales-system.vercel.app`.
+7. In Auth URL Configuration, set the site URL to `https://ns.cgmoye.com`. Allow the `/shipments` and `/settings/account` hash routes on both `ns.cgmoye.com` and `ns-sales-system.vercel.app` as redirect URLs.
 8. Invite the first user from the Supabase dashboard. The auth trigger creates an inactive profile; activate the initial admin once in the SQL editor:
 
 ```sql
@@ -71,8 +72,14 @@ Connect this repository to a Vercel project, then configure:
 4. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` to the Production and Preview environments.
 5. Push `online-app`. Vercel builds and deploys the site automatically.
 
+Use `ns.cgmoye.com` as the primary production domain in Vercel. The generated `vercel.app` domain can remain attached as a secondary address; both domains are allowed by the Supabase configuration above.
+
 The Vercel bundle contains only static application code, map assets, and the Supabase publishable key. Shipment drafts and publications remain in Supabase behind grants, Row Level Security, and server functions.
 
 ## Data migration
 
 No local route is uploaded automatically. Export Route Schema v2 JSON from the offline tracker, then choose **Import JSON** on the online dashboard. A non-sensitive example is available at `public/data/sample-route.json`.
+
+## Rail location directory
+
+`public/data/rail-locations.json` is generated from the U.S. Census Bureau 2025 National Places Gazetteer. It includes official U.S. place names within 25 miles of the embedded rail geometry and stores the nearest rail coordinate for reliable automatic routing. Regenerate it by downloading and extracting `2025_Gaz_place_national.zip`, then run `node scripts/build-rail-locations.mjs <path-to-2025_Gaz_place_national.txt>`.

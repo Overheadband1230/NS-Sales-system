@@ -38,8 +38,8 @@ export function makeStop(index: number, overrides: Partial<ShipmentStop> = {}): 
 }
 
 export function createBlankRoute(): RouteSchemaV2 {
-  const origin = makeStop(0, { name: "Origin", coords: [41.85, -87.65], type: "Origin" });
-  const destination = makeStop(1, { name: "Destination", coords: [39.952, -75.163], type: "Destination" });
+  const origin = makeStop(0, { name: "", coords: [Number.NaN, Number.NaN], type: "Origin" });
+  const destination = makeStop(1, { name: "", coords: [Number.NaN, Number.NaN], type: "Destination" });
   return {
     schemaVersion: 2,
     carrier: "Norfolk Southern · Shipment Tracker",

@@ -17,8 +17,8 @@ port = 54323
 
 [auth]
 enabled = true
-site_url = "https://ns-sales-system.vercel.app"
-additional_redirect_urls = ["http://127.0.0.1:5173/**", "http://localhost:5173/**", "https://ns-sales-system.vercel.app/**"]
+site_url = "https://ns.cgmoye.com"
+additional_redirect_urls = ["http://127.0.0.1:5173/**", "http://localhost:5173/**", "https://ns.cgmoye.com/#/shipments", "https://ns.cgmoye.com/#/settings/account", "https://ns-sales-system.vercel.app/#/shipments", "https://ns-sales-system.vercel.app/#/settings/account"]
 enable_signup = false
 
 [functions.get-public-shipment]

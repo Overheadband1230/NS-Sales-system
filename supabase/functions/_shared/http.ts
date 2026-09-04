@@ -1,8 +1,10 @@
 const defaults = [
   "http://127.0.0.1:5173",
   "http://localhost:5173",
+  "https://ns.cgmoye.com",
   "https://ns-sales-system.vercel.app",
 ];
+const defaultProductionOrigin = "https://ns.cgmoye.com";
 
 function allowedOrigins(): string[] {
   const configured = Deno.env.get("APP_ALLOWED_ORIGINS")?.split(",").map((value) => value.trim()).filter(Boolean) || [];
@@ -12,7 +14,7 @@ function allowedOrigins(): string[] {
 export function corsHeaders(request: Request): Record<string, string> {
   const origin = request.headers.get("origin") || "";
   return {
-    "Access-Control-Allow-Origin": allowedOrigins().includes(origin) ? origin : defaults[2],
+    "Access-Control-Allow-Origin": allowedOrigins().includes(origin) ? origin : defaultProductionOrigin,
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Vary": "Origin",
