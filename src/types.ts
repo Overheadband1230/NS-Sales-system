@@ -90,7 +90,9 @@ export interface ShareLinkRecord {
   expires_at: string | null;
   revoked_at: string | null;
   created_at: string;
+  first_accessed_at: string | null;
   last_accessed_at: string | null;
+  access_count: number;
 }
 
 export interface Profile {

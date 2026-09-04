@@ -14,7 +14,7 @@ Deno.serve(async (request) => {
     if (!shipment || shipment.status === "archived") return publicError(request);
     const { data: publication } = await admin.from("shipment_publications").select("snapshot,published_at").eq("shipment_id", link.shipment_id).order("version", { ascending: false }).limit(1).maybeSingle();
     if (!publication) return publicError(request);
-    await admin.from("share_links").update({ last_accessed_at: new Date().toISOString() }).eq("id", link.id);
+    await admin.rpc("record_share_link_access", { p_link_id: link.id });
     return json(request, { ok: true, shipment: publication.snapshot, publishedAt: publication.published_at });
   } catch (_error) {
     return publicError(request);

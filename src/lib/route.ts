@@ -93,6 +93,28 @@ export function shiftDownstreamSchedules(
   });
 }
 
+export function moveRouteStop(route: RouteSchemaV2, fromIndex: number, toIndex: number): RouteSchemaV2 {
+  if (fromIndex < 0 || fromIndex >= route.stops.length || toIndex < 0 || toIndex >= route.stops.length || fromIndex === toIndex) return route;
+  const stops = [...route.stops];
+  const [moved] = stops.splice(fromIndex, 1);
+  stops.splice(toIndex, 0, moved);
+  const position = route.currentPosition;
+  const currentPosition = position.mode === "leg" && !stops.some((stop, index) => (
+    stop.id === position.fromStopId && stops[index + 1]?.id === position.toStopId
+  ))
+    ? { mode: "stop" as const, stopId: stops[0].id }
+    : position;
+  return { ...route, stops, currentPosition };
+}
+
+export function copyRouteAsDraft(route: RouteSchemaV2): RouteSchemaV2 {
+  const copy = structuredClone(route);
+  const suffix = " copy";
+  copy.trainId = `${copy.trainId.slice(0, 120 - suffix.length)}${suffix}`;
+  copy.updatedAt = localDateTime();
+  return copy;
+}
+
 function validCoordinates(value: unknown): value is Coordinates {
   return (
     Array.isArray(value) &&

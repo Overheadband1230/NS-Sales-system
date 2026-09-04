@@ -91,7 +91,7 @@ export async function publishShipment(id: string, expectedRevision: number): Pro
 export async function getActiveShareLink(shipmentId: string): Promise<ShareLinkRecord | null> {
   const { data, error } = await requireSupabase()
     .from("share_links")
-    .select("id,shipment_id,expires_at,revoked_at,created_at,last_accessed_at")
+    .select("id,shipment_id,expires_at,revoked_at,created_at,first_accessed_at,last_accessed_at,access_count")
     .eq("shipment_id", shipmentId)
     .is("revoked_at", null)
     .order("created_at", { ascending: false })

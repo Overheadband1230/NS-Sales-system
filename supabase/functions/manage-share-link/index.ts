@@ -33,7 +33,7 @@ Deno.serve(async (request) => {
         token_hash: await sha256(token),
         expires_at: expiresAt,
         created_by: user.id,
-      }).select("id,shipment_id,expires_at,revoked_at,created_at,last_accessed_at").single();
+      }).select("id,shipment_id,expires_at,revoked_at,created_at,first_accessed_at,last_accessed_at,access_count").single();
       if (error) throw error;
       return json(request, { ok: true, link, token });
     }
@@ -46,7 +46,7 @@ Deno.serve(async (request) => {
       return json(request, { ok: true });
     }
     const expiresAt = parseExpiration(body.expiresAt);
-    const { data: link, error } = await admin.from("share_links").update({ expires_at: expiresAt ?? null }).eq("id", linkId).select("id,shipment_id,expires_at,revoked_at,created_at,last_accessed_at").single();
+    const { data: link, error } = await admin.from("share_links").update({ expires_at: expiresAt ?? null }).eq("id", linkId).select("id,shipment_id,expires_at,revoked_at,created_at,first_accessed_at,last_accessed_at,access_count").single();
     if (error) throw error;
     return json(request, { ok: true, link });
   } catch (error) {

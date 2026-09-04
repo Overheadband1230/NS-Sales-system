@@ -6,7 +6,11 @@ This branch contains the hosted, shared-workspace edition of the Norfolk Souther
 
 - Invite-only password and email magic-link authentication
 - Shared Active, Delivered, and Archived shipment dashboard
-- Quick update, route setup, preview, and sharing views
+- Quick update with the local tracker's common NS route presets
+- Route setup with accessible stop reordering controls
+- Copy-as-new-draft shipment workflow
+- Sharing analytics with total, first, and latest customer-page views
+- Preview and sharing views
 - Optimistic revision checks for simultaneous staff edits
 - Explicit draft and customer-publication separation
 - Revocable, expiring customer links that never expose internal notes

@@ -9,7 +9,8 @@ import {
   publishShipment,
   saveShipmentDraft,
 } from "../lib/repository";
-import { autoRoute, createBlankRoute, downloadRoute, localDateTime, makeStop, shiftDownstreamSchedules, unroutedLegs, validateRoute } from "../lib/route";
+import { autoRoute, createBlankRoute, downloadRoute, localDateTime, makeStop, moveRouteStop, shiftDownstreamSchedules, unroutedLegs, validateRoute } from "../lib/route";
+import { applyRoutePreset, routePresetChoices } from "../lib/routePresets";
 import { loadRailNetwork } from "../lib/railData";
 import { Notice } from "../components/Notice";
 import { ShipmentView } from "../components/ShipmentView";
@@ -24,7 +25,7 @@ export function ShipmentEditorPage() {
   const initial = (location.state as { route?: RouteSchemaV2 } | null)?.route;
   const [record, setRecord] = useState<ShipmentRecord | null>(null);
   const [route, setRoute] = useState<RouteSchemaV2>(initial || createBlankRoute());
-  const [savedRoute, setSavedRoute] = useState<RouteSchemaV2 | null>(initial || null);
+  const [savedRoute, setSavedRoute] = useState<RouteSchemaV2 | null>(null);
   const [status, setStatus] = useState<ShipmentStatus>("active");
   const [tab, setTab] = useState<EditorTab>("quick");
   const [loading, setLoading] = useState(id !== "new");
@@ -36,6 +37,7 @@ export function ShipmentEditorPage() {
   const [shareLink, setShareLink] = useState<ShareLinkRecord | null>(null);
   const [newShareUrl, setNewShareUrl] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
+  const [presetChoice, setPresetChoice] = useState("atlanta-croxton:forward");
 
   const dirty = useMemo(() => !savedRoute || JSON.stringify(route) !== JSON.stringify(savedRoute), [route, savedRoute]);
   const validation = useMemo(() => validateRoute(route), [route]);
@@ -131,6 +133,25 @@ export function ShipmentEditorPage() {
     setRoute({ ...route, stops, currentPosition: current, routeSegments: {} });
   }
 
+  function moveStop(fromIndex: number, toIndex: number) {
+    setRoute((current) => moveRouteStop(current, fromIndex, toIndex));
+    setMessage("");
+  }
+
+  async function loadPreset() {
+    setWorking(true); setError(""); setMessage("");
+    try {
+      const edges = railNetwork || await loadRailNetwork();
+      const preset = applyRoutePreset(route, presetChoice);
+      const routed = autoRoute(preset, edges);
+      const missing = unroutedLegs(routed);
+      setRailNetwork(edges); setRoute(routed);
+      if (missing.length) setMessage(`Preset loaded. Review the stops that could not be auto-routed: ${missing.join(", ")}.`);
+      else setMessage("Preset route loaded and snapped to the NS rail network.");
+    } catch (caught) { setError(caught instanceof Error ? caught.message : "The preset route could not be loaded."); }
+    finally { setWorking(false); }
+  }
+
   function changeCurrentLeg(fromStopId: string) {
     const index = route.stops.findIndex((stop) => stop.id === fromStopId);
     if (index < 0 || !route.stops[index + 1]) return;
@@ -184,6 +205,17 @@ export function ShipmentEditorPage() {
     finally { setWorking(false); }
   }
 
+  async function refreshAnalytics() {
+    if (!record) return;
+    setWorking(true); setError("");
+    try {
+      const link = await getActiveShareLink(record.id);
+      setShareLink(link);
+      setMessage("Customer-view analytics refreshed.");
+    } catch (caught) { setError(caught instanceof Error ? caught.message : "Customer-view analytics could not be refreshed."); }
+    finally { setWorking(false); }
+  }
+
   if (loading) return <div className="empty-state">Loading shipment…</div>;
 
   return (
@@ -197,10 +229,45 @@ export function ShipmentEditorPage() {
       <nav className="editor-tabs">
         {(["quick", "setup", "preview", "sharing"] as EditorTab[]).map((item) => <button key={item} className={tab === item ? "active" : ""} onClick={() => setTab(item)}>{item === "quick" ? "Quick update" : item === "setup" ? "Route setup" : item[0].toUpperCase() + item.slice(1)}</button>)}
       </nav>
-      {tab === "quick" && <section className="panel editor-panel"><div className="section-heading"><div><p className="eyebrow">Customer and movement</p><h2>Quick update</h2></div><label className="compact-field">Status<select value={status} onChange={(event) => setStatus(event.target.value as ShipmentStatus)}><option value="active">Active</option><option value="delivered">Delivered</option>{status === "archived" && <option value="archived">Archived</option>}</select></label></div><div className="form-grid three"><label>Train / shipment ID<input value={route.trainId} onChange={(event) => update("trainId", event.target.value)} /></label><label>Customer<input value={route.customer} onChange={(event) => update("customer", event.target.value)} /></label><label>Commodity<input value={route.commodity} onChange={(event) => update("commodity", event.target.value)} /></label><label>Cars<input type="number" min="0" max="9999" value={route.cars} onChange={(event) => update("cars", Number(event.target.value))} /></label><label>Last updated<input type="datetime-local" value={route.updatedAt} onChange={(event) => update("updatedAt", event.target.value)} /></label><label>Timezone<input maxLength={12} value={route.timezone} onChange={(event) => update("timezone", event.target.value)} /></label></div><section className="subpanel"><h3>Current position</h3><div className="position-controls"><select value={route.currentPosition.mode} onChange={(event) => update("currentPosition", event.target.value === "stop" ? { mode: "stop", stopId: route.stops[0]?.id || "" } : { mode: "leg", fromStopId: route.stops[0]?.id || "", toStopId: route.stops[1]?.id || "", progress: 0.5 })}><option value="stop">At a stop</option><option value="leg">Between stops</option></select>{route.currentPosition.mode === "stop" ? <select value={route.currentPosition.stopId} onChange={(event) => update("currentPosition", { mode: "stop", stopId: event.target.value })}>{route.stops.map((stop) => <option key={stop.id} value={stop.id}>{stop.name}</option>)}</select> : <><select value={route.currentPosition.fromStopId} onChange={(event) => changeCurrentLeg(event.target.value)}>{route.stops.slice(0, -1).map((stop, index) => <option key={stop.id} value={stop.id}>{stop.name} → {route.stops[index + 1].name}</option>)}</select><label className="range-label">Progress <input type="range" min="0" max="100" value={Math.round(route.currentPosition.progress * 100)} onChange={(event) => changeCurrentProgress(Number(event.target.value) / 100)} /><strong>{Math.round(route.currentPosition.progress * 100)}%</strong></label></>}</div></section></section>}
-      {tab === "setup" && <section className="editor-stack"><section className="panel section-heading"><div><p className="eyebrow">Stops and geometry</p><h2>Route setup</h2><p className="muted">Type a city and select it to fill the nearest NS rail coordinates automatically. Then auto-route the legs.</p></div><div className="toolbar"><button className="button" disabled={working} onClick={() => void runAutoRoute()}>Auto-route legs</button><button className="button primary" onClick={addStop}>+ Add stop</button></div></section>{route.stops.map((stop, index) => <StopEditor key={stop.id} stop={stop} index={index} total={route.stops.length} onChange={(next) => updateStop(index, next)} onRemove={() => removeStop(index)} />)}<div className="route-setup-footer"><button className="button primary" onClick={addStop}>+ Add stop</button></div></section>}
+      {tab === "quick" && <section className="panel editor-panel"><div className="section-heading"><div><p className="eyebrow">Customer and movement</p><h2>Quick update</h2></div><label className="compact-field">Status<select value={status} onChange={(event) => setStatus(event.target.value as ShipmentStatus)}><option value="active">Active</option><option value="delivered">Delivered</option>{status === "archived" && <option value="archived">Archived</option>}</select></label></div><div className="form-grid three"><label>Train / shipment ID<input value={route.trainId} onChange={(event) => update("trainId", event.target.value)} /></label><label>Customer<input value={route.customer} onChange={(event) => update("customer", event.target.value)} /></label><label>Commodity<input value={route.commodity} onChange={(event) => update("commodity", event.target.value)} /></label><label>Cars<input type="number" min="0" max="9999" value={route.cars} onChange={(event) => update("cars", Number(event.target.value))} /></label><label>Last updated<input type="datetime-local" value={route.updatedAt} onChange={(event) => update("updatedAt", event.target.value)} /></label><label>Timezone<input maxLength={12} value={route.timezone} onChange={(event) => update("timezone", event.target.value)} /></label></div><section className="subpanel preset-panel"><div><h3>Common NS route presets</h3><p className="muted">Load one of the routes available in the local tracker. This replaces the current stops and train symbol.</p></div><div className="preset-controls"><select aria-label="Preset route" value={presetChoice} onChange={(event) => setPresetChoice(event.target.value)}>{routePresetChoices.map((choice) => <option key={choice.id} value={choice.id}>{choice.label}</option>)}</select><button className="button" disabled={working} onClick={() => void loadPreset()}>Load route</button></div></section><section className="subpanel"><h3>Current position</h3><div className="position-controls"><select value={route.currentPosition.mode} onChange={(event) => update("currentPosition", event.target.value === "stop" ? { mode: "stop", stopId: route.stops[0]?.id || "" } : { mode: "leg", fromStopId: route.stops[0]?.id || "", toStopId: route.stops[1]?.id || "", progress: 0.5 })}><option value="stop">At a stop</option><option value="leg">Between stops</option></select>{route.currentPosition.mode === "stop" ? <select value={route.currentPosition.stopId} onChange={(event) => update("currentPosition", { mode: "stop", stopId: event.target.value })}>{route.stops.map((stop) => <option key={stop.id} value={stop.id}>{stop.name}</option>)}</select> : <><select value={route.currentPosition.fromStopId} onChange={(event) => changeCurrentLeg(event.target.value)}>{route.stops.slice(0, -1).map((stop, index) => <option key={stop.id} value={stop.id}>{stop.name} → {route.stops[index + 1].name}</option>)}</select><label className="range-label">Progress <input type="range" min="0" max="100" value={Math.round(route.currentPosition.progress * 100)} onChange={(event) => changeCurrentProgress(Number(event.target.value) / 100)} /><strong>{Math.round(route.currentPosition.progress * 100)}%</strong></label></>}</div></section></section>}
+      {tab === "setup" && <section className="editor-stack"><section className="panel section-heading"><div><p className="eyebrow">Stops and geometry</p><h2>Route setup</h2><p className="muted">Type a city and select it to fill the nearest NS rail coordinates automatically. Reorder stops with the arrow buttons, then auto-route the legs.</p></div><div className="toolbar"><button className="button" disabled={working} onClick={() => void runAutoRoute()}>Auto-route legs</button><button className="button primary" onClick={addStop}>+ Add stop</button></div></section>{route.stops.map((stop, index) => <StopEditor key={stop.id} stop={stop} index={index} total={route.stops.length} onChange={(next) => updateStop(index, next)} onRemove={() => removeStop(index)} onMoveUp={() => moveStop(index, index - 1)} onMoveDown={() => moveStop(index, index + 1)} />)}<div className="route-setup-footer"><button className="button primary" onClick={addStop}>+ Add stop</button></div></section>}
       {tab === "preview" && <ShipmentView route={route} publishedAt={record?.last_published_at || undefined} />}
-      {tab === "sharing" && <section className="settings-grid"><section className="panel"><p className="eyebrow">Published customer view</p><h2>Share link</h2><p className="muted">The link always shows the latest published snapshot. Draft edits and internal notes are never included.</p>{!record?.last_published_at ? <Notice>Publish the shipment before creating a customer link.</Notice> : shareLink ? <><Notice tone="success">An active customer link exists{shareLink.expires_at ? ` and expires ${new Date(shareLink.expires_at).toLocaleString()}` : " without an expiration"}.</Notice><label>Expiration<input type="datetime-local" value={expiresAt} onChange={(event) => setExpiresAt(event.target.value)} /></label><div className="toolbar"><button className="button" onClick={() => void updateExpiration()}>Update expiration</button><button className="button danger" onClick={() => void revokeLink()}>Revoke link</button><button className="button primary" onClick={() => void createLink()}>Regenerate link</button></div></> : <><label>Expiration<input type="datetime-local" value={expiresAt || defaultExpiration()} onChange={(event) => setExpiresAt(event.target.value)} /></label><button className="button primary" onClick={() => void createLink()}>Create and copy customer link</button></>}{newShareUrl && <div className="one-time-link"><strong>Copy this link now</strong><input readOnly value={newShareUrl} onFocus={(event) => event.target.select()} /><button className="button" onClick={() => void navigator.clipboard.writeText(newShareUrl)}>Copy</button><small>For security, the complete link will not be shown again. Regenerate it if it is lost.</small></div>}</section><section className="panel"><p className="eyebrow">Publication status</p><h2>{record?.last_published_at ? "Customer view is live" : "Draft only"}</h2><p>{record?.last_published_at ? `Last published ${new Date(record.last_published_at).toLocaleString()}.` : "No customer-safe snapshot has been published."}</p><p className="muted">Saving a draft does not change what customers see.</p></section></section>}
+      {tab === "sharing" && (
+        <section className="settings-grid">
+          <section className="panel">
+            <p className="eyebrow">Published customer view</p>
+            <h2>Share link</h2>
+            <p className="muted">The link always shows the latest published snapshot. Draft edits and internal notes are never included.</p>
+            {!record?.last_published_at ? <Notice>Publish the shipment before creating a customer link.</Notice> : shareLink ? <>
+              <Notice tone="success">An active customer link exists{shareLink.expires_at ? ` and expires ${new Date(shareLink.expires_at).toLocaleString()}` : " without an expiration"}.</Notice>
+              <label>Expiration<input type="datetime-local" value={expiresAt} onChange={(event) => setExpiresAt(event.target.value)} /></label>
+              <div className="toolbar"><button className="button" onClick={() => void updateExpiration()}>Update expiration</button><button className="button danger" onClick={() => void revokeLink()}>Revoke link</button><button className="button primary" onClick={() => void createLink()}>Regenerate link</button></div>
+            </> : <>
+              <label>Expiration<input type="datetime-local" value={expiresAt || defaultExpiration()} onChange={(event) => setExpiresAt(event.target.value)} /></label>
+              <button className="button primary" onClick={() => void createLink()}>Create and copy customer link</button>
+            </>}
+            {newShareUrl && <div className="one-time-link"><strong>Copy this link now</strong><input readOnly value={newShareUrl} onFocus={(event) => event.target.select()} /><button className="button" onClick={() => void navigator.clipboard.writeText(newShareUrl)}>Copy</button><small>For security, the complete link will not be shown again. Regenerate it if it is lost.</small></div>}
+          </section>
+          <section className="panel">
+            <p className="eyebrow">Publication status</p>
+            <h2>{record?.last_published_at ? "Customer view is live" : "Draft only"}</h2>
+            <p>{record?.last_published_at ? `Last published ${new Date(record.last_published_at).toLocaleString()}.` : "No customer-safe snapshot has been published."}</p>
+            <p className="muted">Saving a draft does not change what customers see.</p>
+            {shareLink ? <div className="analytics-block">
+              <div className={shareLink.access_count > 0 ? "view-status viewed" : "view-status"}>
+                <strong>{shareLink.access_count > 0 ? "Customer page viewed" : "Not viewed yet"}</strong>
+                <span>{shareLink.access_count > 0 ? "The shared customer website has been opened." : "The active customer link has not been opened."}</span>
+              </div>
+              <div className="analytics-grid">
+                <div><strong>{shareLink.access_count}</strong><span>Total views</span></div>
+                <div><strong>{shareLink.first_accessed_at ? new Date(shareLink.first_accessed_at).toLocaleString() : "—"}</strong><span>First viewed</span></div>
+                <div><strong>{shareLink.last_accessed_at ? new Date(shareLink.last_accessed_at).toLocaleString() : "—"}</strong><span>Last viewed</span></div>
+              </div>
+              <button className="button" disabled={working} onClick={() => void refreshAnalytics()}>Refresh analytics</button>
+            </div> : record?.last_published_at && <p className="muted">Create a customer link to begin tracking page views.</p>}
+          </section>
+        </section>
+      )}
     </>
   );
 }

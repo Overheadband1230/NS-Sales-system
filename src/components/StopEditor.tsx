@@ -2,12 +2,14 @@ import { useMemo, useState } from "react";
 import { loadRailLocations, searchRailLocations, type RailLocation } from "../lib/railLocations";
 import type { ShipmentStop } from "../types";
 
-export function StopEditor({ stop, index, total, onChange, onRemove }: {
+export function StopEditor({ stop, index, total, onChange, onRemove, onMoveUp, onMoveDown }: {
   stop: ShipmentStop;
   index: number;
   total: number;
   onChange: (stop: ShipmentStop) => void;
   onRemove: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
 }) {
   const [locations, setLocations] = useState<RailLocation[]>([]);
   const [directoryState, setDirectoryState] = useState<"idle" | "loading" | "ready" | "error">("idle");
@@ -43,7 +45,15 @@ export function StopEditor({ stop, index, total, onChange, onRemove }: {
 
   return (
     <article className="stop-editor">
-      <header><div className="stop-number">{index + 1}</div><div><strong>{stop.name || `Stop ${index + 1}`}</strong><small>{stop.type}</small></div>{total > 2 && <button className="text-button danger-text" onClick={onRemove}>Remove</button>}</header>
+      <header>
+        <div className="stop-number">{index + 1}</div>
+        <div><strong>{stop.name || `Stop ${index + 1}`}</strong><small>{stop.type}</small></div>
+        <div className="stop-actions">
+          <button type="button" className="move-stop" aria-label={`Move ${stop.name || `stop ${index + 1}`} up`} disabled={index === 0} onClick={onMoveUp}>↑</button>
+          <button type="button" className="move-stop" aria-label={`Move ${stop.name || `stop ${index + 1}`} down`} disabled={index === total - 1} onClick={onMoveDown}>↓</button>
+          {total > 2 && <button type="button" className="text-button danger-text" onClick={onRemove}>Remove</button>}
+        </div>
+      </header>
       <div className="form-grid three">
         <div className="location-field">
           <label htmlFor={inputId}>City or rail location</label>

@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ShipmentStatus, ShipmentSummary } from "../types";
-import { createShipment, listShipments, setShipmentStatus } from "../lib/repository";
-import { createBlankRoute, migrateRoute, validateRoute } from "../lib/route";
+import { createShipment, getShipment, listShipments, setShipmentStatus } from "../lib/repository";
+import { copyRouteAsDraft, createBlankRoute, migrateRoute, validateRoute } from "../lib/route";
 import { Notice } from "../components/Notice";
 
 export function DashboardPage() {
@@ -11,6 +11,7 @@ export function DashboardPage() {
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<ShipmentStatus>("active");
+  const [copyingId, setCopyingId] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
@@ -52,6 +53,15 @@ export function DashboardPage() {
     catch (caught) { setError(caught instanceof Error ? caught.message : "The shipment could not be archived."); }
   }
 
+  async function copyShipment(id: string) {
+    setCopyingId(id); setError("");
+    try {
+      const shipment = await getShipment(id);
+      navigate("/shipments/new", { state: { route: copyRouteAsDraft(shipment.draft_data) } });
+    } catch (caught) { setError(caught instanceof Error ? caught.message : "The shipment could not be copied."); }
+    finally { setCopyingId(""); }
+  }
+
   return (
     <>
       <section className="page-heading">
@@ -76,7 +86,10 @@ export function DashboardPage() {
                   <span className="route-copy"><strong>{shipment.origin_name} → {shipment.destination_name}</strong><small>Updated {new Date(shipment.updated_at).toLocaleString()}</small></span>
                   <span className={shipment.last_published_at ? "published" : "unpublished"}>{shipment.last_published_at ? "Published" : "Draft only"}</span>
                 </button>
-                {shipment.status !== "archived" && <button className="icon-action" aria-label={`Archive ${shipment.train_id}`} onClick={() => void archive(shipment.id)}>Archive</button>}
+                <div className="shipment-actions">
+                  <button className="icon-action" disabled={copyingId === shipment.id} aria-label={`Copy ${shipment.train_id}`} onClick={() => void copyShipment(shipment.id)}>{copyingId === shipment.id ? "Copying…" : "Copy"}</button>
+                  {shipment.status !== "archived" && <button className="icon-action" aria-label={`Archive ${shipment.train_id}`} onClick={() => void archive(shipment.id)}>Archive</button>}
+                </div>
               </article>
             ))}
           </div>

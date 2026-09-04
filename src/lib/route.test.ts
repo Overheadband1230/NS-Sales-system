@@ -2,10 +2,12 @@ import type { RailEdge, RouteSchemaV2 } from "../types";
 import { describe, expect, it } from "vitest";
 import {
   autoRoute,
+  copyRouteAsDraft,
   createBlankRoute,
   legGeometry,
   makeStop,
   migrateRoute,
+  moveRouteStop,
   routeLegGeometries,
   routeMiles,
   sanitizeForCustomer,
@@ -141,5 +143,28 @@ describe("route schedule updates", () => {
 
     expect(shiftDownstreamSchedules(stops, "", "2026-09-01T06:00")).toBe(stops);
     expect(shiftDownstreamSchedules(stops, "2026-09-01T06:00", "")).toBe(stops);
+  });
+});
+
+describe("shipment editing helpers", () => {
+  it("moves a stop and resets a current leg that is no longer adjacent", () => {
+    const draft = route([41, -84], [41, -82]);
+    const middle = makeStop(1, { id: "middle", name: "Middle", coords: [41, -83] });
+    draft.stops.splice(1, 0, middle);
+    draft.currentPosition = { mode: "leg", fromStopId: "origin", toStopId: "middle", progress: 0.5 };
+
+    const moved = moveRouteStop(draft, 1, 2);
+
+    expect(moved.stops.map((stop) => stop.id)).toEqual(["origin", "destination", "middle"]);
+    expect(moved.currentPosition).toEqual({ mode: "stop", stopId: "origin" });
+  });
+
+  it("creates an independent copy with a distinguishable shipment ID", () => {
+    const original = route([41, -84], [41, -82]);
+    const copied = copyRouteAsDraft(original);
+
+    expect(copied.trainId).toBe("TEST copy");
+    expect(copied).not.toBe(original);
+    expect(copied.stops).not.toBe(original.stops);
   });
 });
