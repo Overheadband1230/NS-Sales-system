@@ -7,6 +7,7 @@ if (!sourcePath) {
 }
 
 const networkPath = resolve("public/data/ns-network.json");
+const extraPath = resolve("scripts/rail-locations-extra.json");
 const outputPath = resolve("public/data/rail-locations.json");
 const MAX_DISTANCE_MILES = 25;
 const CELL_SIZE = 1;
@@ -80,6 +81,22 @@ for (const row of rows) {
   const key = `${city.toLocaleLowerCase()}|${state}`;
   const existing = byPlace.get(key);
   if (!existing || item.railDistanceMiles < existing.railDistanceMiles) byPlace.set(key, item);
+}
+
+// Rail-served places the Census Gazetteer does not list (unincorporated
+// communities and yards such as Abrams, PA). Same snapping rule as above so a
+// curated entry is indistinguishable from a generated one.
+for (const extra of JSON.parse(await readFile(extraPath, "utf8"))) {
+  const nearest = nearestRailPoint(railIndex, extra.sourceCoords);
+  if (!nearest) throw new Error(`No NS track near ${extra.city}, ${extra.state}.`);
+  byPlace.set(`${extra.city.toLocaleLowerCase()}|${extra.state}`, {
+    id: extra.id,
+    city: extra.city,
+    state: extra.state,
+    name: `${extra.city}, ${extra.state}`,
+    coords: nearest.coords.map((value) => Number(value.toFixed(5))),
+    railDistanceMiles: Number(nearest.miles.toFixed(1)),
+  });
 }
 
 const locations = [...byPlace.values()].sort((a, b) => a.city.localeCompare(b.city) || a.state.localeCompare(b.state));

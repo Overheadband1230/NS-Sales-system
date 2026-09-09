@@ -16,6 +16,7 @@ function FitRoute({ points }: { points: [number, number][] }) {
 export function ShipmentMap({ route, showNetwork = true }: { route: RouteSchemaV2; showNetwork?: boolean }) {
   const [states, setStates] = useState<GeoJSON.FeatureCollection | null>(null);
   const [network, setNetwork] = useState<RailEdge[]>([]);
+  const networkGeometry = useMemo(() => network.map(([, , geometry]) => geometry), [network]);
   const legs = useMemo(() => routeLegGeometries(route), [route]);
   const points = useMemo(() => legs.flat(), [legs]);
   const current = useMemo(() => currentCoordinates(route), [route]);
@@ -26,12 +27,12 @@ export function ShipmentMap({ route, showNetwork = true }: { route: RouteSchemaV
   }, [showNetwork]);
 
   return (
-    <MapContainer className="shipment-map" center={[39.5, -86]} zoom={5} zoomControl attributionControl={false}>
+    <MapContainer className="shipment-map" center={[39.5, -86]} zoom={5} zoomControl attributionControl={false} preferCanvas>
       {states && <GeoJSON data={states} style={{ color: "#536171", weight: 0.7, fillColor: "#111820", fillOpacity: 0.95 }} />}
       <Pane name="rail-network" style={{ zIndex: 410 }}>
-        {network.map(([from, to, geometry]) => (
-          <Polyline key={`${from}-${to}`} positions={geometry} pathOptions={{ color: "#f97316", weight: 1.5, opacity: 0.72 }} interactive={false} />
-        ))}
+        {networkGeometry.length > 0 && (
+          <Polyline positions={networkGeometry} pathOptions={{ color: "#f97316", weight: 1.5, opacity: 0.72 }} interactive={false} />
+        )}
       </Pane>
       <Pane name="shipment-route" style={{ zIndex: 420 }}>
         {legs.map((leg, index) => (

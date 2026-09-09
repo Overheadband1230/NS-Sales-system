@@ -12,7 +12,7 @@ const AccountPage = lazy(() => import("./pages/AccountPage").then((module) => ({
 
 function ProtectedRoute() {
   const { session, profile, loading } = useAuth();
-  if (loading) return <main className="public-state"><div className="spinner" /><p>Opening workspace…</p></main>;
+  if (loading && (!session || !profile)) return <main className="public-state"><div className="spinner" /><p>Opening workspace…</p></main>;
   if (!session) return <Navigate to="/login" replace />;
   if (!profile?.active) return <Navigate to="/login" replace />;
   return <Outlet />;
