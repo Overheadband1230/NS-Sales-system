@@ -701,7 +701,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .map-label{position:absolute;z-index:500;top:16px;left:16px;pointer-events:none;display:flex;gap:8px;flex-wrap:wrap}
 .map-chip{background:rgba(10,13,17,.88);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:999px;padding:7px 10px;font-size:11px;color:var(--muted);box-shadow:0 8px 24px rgba(0,0,0,.22)}
 .map-chip strong{color:var(--text)}
-.map-tools{position:absolute;z-index:500;right:16px;bottom:18px;display:flex;gap:8px}
+.map-tools{position:absolute;z-index:500;left:16px;right:16px;bottom:18px;display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;pointer-events:none}
+.map-tools>*{pointer-events:auto}
+.highlight-tools{display:flex;align-items:center;gap:6px;padding:4px 4px 4px 10px;border:1px solid var(--line);border-radius:11px;background:rgba(10,13,17,.88)}
+.highlight-label{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:800}
+.highlight-tools select{max-width:170px;border:1px solid var(--line);border-radius:8px;background:#0c1015;color:var(--text);padding:6px 8px;font-size:12px}
+.highlight-tools input[type=color]{width:34px;height:30px;padding:2px;border:1px solid var(--line);border-radius:8px;background:#0c1015;cursor:pointer}
 .details{min-width:0;border-left:1px solid var(--line);background:var(--coal);display:flex;flex-direction:column;overflow:hidden}
 .summary{padding:18px;border-bottom:1px solid var(--line)}
 .status-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.status-kicker{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:800}
@@ -726,6 +731,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .train-pin.off-network{background:var(--red);color:#fff;box-shadow:0 0 0 4px rgba(255,116,116,.3),0 8px 18px rgba(0,0,0,.5)}
 .hub-pin{width:18px;height:18px;transform:rotate(45deg);border:2px solid #080a0d;box-shadow:0 0 0 2px rgba(255,255,255,.15)}
 .round-pin{width:14px;height:14px;border-radius:50%;border:2px solid #080a0d;box-shadow:0 0 0 2px rgba(255,255,255,.12)}
+.stop-icon{display:grid;place-items:center}.round-pin.highlighted{width:20px;height:20px}.hub-pin.highlighted{width:22px;height:22px}
 .leaflet-tooltip{background:#121820!important;color:var(--text)!important;border:1px solid var(--line)!important;box-shadow:0 8px 24px rgba(0,0,0,.35)!important}
 .leaflet-tooltip:before{display:none}
 .editor-shade{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:1999;opacity:0;pointer-events:none;transition:opacity .2s}
@@ -783,6 +789,13 @@ body.customer .snapshot{background:#2c2405}
         <div class="map-chip"><strong id="mapMiles">0 mi</strong> planned route</div>
       </div>
       <div class="map-tools">
+        <div class="highlight-tools" data-editor-only>
+          <span class="highlight-label">Highlight</span>
+          <select id="highlightStop" aria-label="Location to highlight"></select>
+          <input type="color" id="highlightColor" value="#ff4fd8" aria-label="Highlight color">
+          <button class="button small" id="clearHighlightButton" type="button">Clear</button>
+        </div>
+        <button class="button small" id="exportPngButton" type="button" data-editor-only>Export PNG</button>
         <button class="button small" id="fitRouteButton" type="button">Fit route</button>
       </div>
     </section>
@@ -872,7 +885,7 @@ const NS_NET = [[380139,380150,[[41.57883,-93.57441],[41.57795,-93.57126]]],[386
 "use strict";
 var DATA=null,map=null,routeGroup=null,networkGroup=null,fitBounds=null,lastMetrics=null;
 var OFF_NETWORK_MILES=5,railSegmentsCache=null;
-var COLORS={done:"#54a9ff",current:"#ffca0a",future:"#687384"};
+var COLORS={done:"#54a9ff",current:"#ffca0a",future:"#687384"},HIGHLIGHT_DEFAULT="#ff4fd8";
 function byId(id){return document.getElementById(id)}
 function clone(value){return JSON.parse(JSON.stringify(value))}
 function clamp(value,min,max){return Math.max(min,Math.min(max,value))}
@@ -1011,34 +1024,104 @@ function initializeMap(){
   routeGroup=L.layerGroup().addTo(map);
   map.setView([40,-86],5);
 }
-function markerHtml(stop,color){
+function highlightOf(stop){var value=String(stop&&stop.highlight||"");return /^#[0-9a-f]{6}$/i.test(value)?value.toLowerCase():""}
+/* Route lines and stop markers are described once, then drawn by Leaflet and by the PNG export. */
+function routeLines(metrics){
+  var info=metrics.position,lines=[];
+  metrics.legs.forEach(function(leg,i){
+    if(leg.geometry.length<2)return;
+    if(info.mode==="leg"&&i===info.index){
+      var pieces=splitGeometry(leg.geometry,info.progress);
+      if(pieces[0].length>1)lines.push({points:pieces[0],done:true});
+      if(pieces[1].length>1)lines.push({points:pieces[1],done:false});
+    }else lines.push({points:leg.geometry,done:i<info.index});
+  });
+  return lines.map(function(line){return {points:line.points,color:line.done?COLORS.done:COLORS.future,weight:line.done?4.5:3.5,dash:line.done?null:[7,9]}});
+}
+function stopMarkers(data,info){
+  return data.stops.map(function(stop,i){
+    var status=stopStatus(i,info),highlight=highlightOf(stop);
+    var color=highlight||(status==="done"?COLORS.done:(status==="current"||status==="next"?COLORS.current:COLORS.future));
+    return {stop:stop,color:color,highlight:highlight,labelOffset:highlight?(stop.major?26:19):9};
+  });
+}
+function markerHtml(marker){
   var div=document.createElement("div");
-  div.className=stop.major?"hub-pin":"round-pin";div.style.background=color;return div.outerHTML;
+  div.className=(marker.stop.major?"hub-pin":"round-pin")+(marker.highlight?" highlighted":"");div.style.background=marker.color;
+  if(marker.highlight)div.style.boxShadow="0 0 0 3px #080a0d,0 0 0 6px "+marker.highlight+",0 0 18px "+marker.highlight;
+  return div.outerHTML;
 }
 function renderMap(data,metrics){
   routeGroup.clearLayers();
   var info=metrics.position,allPoints=[];
-  metrics.legs.forEach(function(leg,i){
-    if(leg.geometry.length<2)return;
-    allPoints=allPoints.concat(i?leg.geometry.slice(1):leg.geometry);
-    if(info.mode==="leg"&&i===info.index){
-      var pieces=splitGeometry(leg.geometry,info.progress);
-      if(pieces[0].length>1)L.polyline(pieces[0],{color:COLORS.done,weight:4.5,lineCap:"round"}).addTo(routeGroup);
-      if(pieces[1].length>1)L.polyline(pieces[1],{color:COLORS.future,weight:3.5,dashArray:"7 9",lineCap:"round"}).addTo(routeGroup);
-    }else{
-      var isDone=info.mode==="stop"?i<info.index:i<info.index;
-      L.polyline(leg.geometry,{color:isDone?COLORS.done:COLORS.future,weight:isDone?4.5:3.5,dashArray:isDone?null:"7 9",lineCap:"round"}).addTo(routeGroup);
-    }
-  });
-  data.stops.forEach(function(stop,i){
-    var status=stopStatus(i,info),color=status==="done"?COLORS.done:(status==="current"||status==="next"?COLORS.current:COLORS.future);
-    var icon=L.divIcon({className:"",html:markerHtml(stop,color),iconSize:[22,22],iconAnchor:[11,11]});
-    L.marker(stop.coords,{icon:icon,keyboard:true,title:stop.name}).addTo(routeGroup).bindTooltip(stop.name,{direction:"top",offset:[0,-9]});
+  metrics.legs.forEach(function(leg,i){if(leg.geometry.length>1)allPoints=allPoints.concat(i?leg.geometry.slice(1):leg.geometry)});
+  routeLines(metrics).forEach(function(line){L.polyline(line.points,{color:line.color,weight:line.weight,dashArray:line.dash?line.dash.join(" "):null,lineCap:"round"}).addTo(routeGroup)});
+  stopMarkers(data,info).forEach(function(marker){
+    var size=marker.highlight?36:22,icon=L.divIcon({className:"stop-icon",html:markerHtml(marker),iconSize:[size,size],iconAnchor:[size/2,size/2]});
+    var pin=L.marker(marker.stop.coords,{icon:icon,keyboard:true,title:marker.stop.name,zIndexOffset:marker.highlight?500:0}).addTo(routeGroup).bindTooltip(marker.stop.name,{direction:"top",offset:[0,-marker.labelOffset],permanent:!!marker.highlight});
+    var tip=marker.highlight&&pin.getTooltip().getElement();if(tip)tip.style.setProperty("border-color",marker.highlight,"important");
   });
   var trainIcon=L.divIcon({className:"",html:'<div class="train-pin'+(metrics.offNetwork?' off-network':'')+'" aria-hidden="true">◆</div>',iconSize:[34,34],iconAnchor:[17,17]});
   var trainLabel=info.label+(metrics.offNetwork?" · Outside the Norfolk Southern network":"");
   L.marker(info.point,{icon:trainIcon,keyboard:true,title:"Train "+data.trainId+(metrics.offNetwork?" — off NS network":"")}).addTo(routeGroup).bindTooltip(trainLabel,{direction:"top",offset:[0,-17]});
   fitBounds=allPoints.length?L.latLngBounds(allPoints):null;
+}
+function renderHighlightTools(data){
+  var stopSelect=byId("highlightStop"),color=byId("highlightColor"),clear=byId("clearHighlightButton");if(!stopSelect||!color||!clear)return;
+  var stops=data.stops||[],current=stopSelect.value;stopSelect.replaceChildren();
+  stops.forEach(function(stop){var option=textNode("option","",stop.name);option.value=stop.id;stopSelect.appendChild(option)});
+  if(stops.some(function(stop){return stop.id===current}))stopSelect.value=current;
+  var highlight=highlightOf(selectedHighlightStop());color.value=highlight||HIGHLIGHT_DEFAULT;clear.disabled=!highlight;
+}
+function selectedHighlightStop(){var stopSelect=byId("highlightStop");return stopSelect&&DATA?(DATA.stops||[]).find(function(stop){return stop.id===stopSelect.value}):null}
+function setHighlight(color){var stop=selectedHighlightStop();if(!stop)return;if(color)stop.highlight=color;else delete stop.highlight;render(DATA,false)}
+function exportPng(){
+  if(!map||!DATA||!lastMetrics)return;
+  var size=map.getSize(),scale=Math.max(2,window.devicePixelRatio||1),canvas=document.createElement("canvas"),ctx=canvas.getContext("2d");
+  canvas.width=Math.round(size.x*scale);canvas.height=Math.round(size.y*scale);ctx.scale(scale,scale);ctx.lineJoin=ctx.lineCap="round";
+  var css=getComputedStyle(document.documentElement),cssVar=function(name,fallback){return css.getPropertyValue(name).trim()||fallback};
+  function point(latlng){return map.latLngToContainerPoint(latlng)}
+  function trace(points,swap){points.forEach(function(p,i){var c=point(swap?[p[1],p[0]]:p);if(i)ctx.lineTo(c.x,c.y);else ctx.moveTo(c.x,c.y)})}
+  var radius=Math.hypot(size.x*.55,size.y*.55),bg=ctx.createRadialGradient(size.x*.45,size.y*.45,0,size.x*.45,size.y*.45,radius);
+  bg.addColorStop(0,"#17202a");bg.addColorStop(.68,"#0b0e12");bg.addColorStop(1,"#0b0e12");ctx.fillStyle=bg;ctx.fillRect(0,0,size.x,size.y);
+  ctx.beginPath();
+  US_STATES.features.forEach(function(feature){var g=feature.geometry,polygons=g.type==="Polygon"?[g.coordinates]:g.type==="MultiPolygon"?g.coordinates:[];polygons.forEach(function(rings){rings.forEach(function(ring){trace(ring,true);ctx.closePath()})})});
+  ctx.fillStyle="rgba(19,26,34,.94)";ctx.fill("evenodd");ctx.strokeStyle="rgba(82,97,113,.95)";ctx.lineWidth=.75;ctx.stroke();
+  ctx.beginPath();if(Array.isArray(NS_NET))NS_NET.forEach(function(edge){if(edge&&Array.isArray(edge[2]))trace(edge[2])});
+  ctx.strokeStyle="rgba(168,117,36,.35)";ctx.lineWidth=1;ctx.stroke();
+  routeLines(lastMetrics).forEach(function(line){ctx.beginPath();trace(line.points);ctx.strokeStyle=line.color;ctx.lineWidth=line.weight;ctx.setLineDash(line.dash||[]);ctx.stroke()});ctx.setLineDash([]);
+  var markers=stopMarkers(DATA,lastMetrics.position);
+  markers.filter(function(m){return !m.highlight}).concat(markers.filter(function(m){return m.highlight})).forEach(function(marker){drawStopPin(ctx,point(marker.stop.coords),marker,scale)});
+  drawTrainPin(ctx,point(lastMetrics.position.point),lastMetrics.offNetwork,scale,cssVar);
+  markers.forEach(function(marker){if(marker.highlight)drawLabel(ctx,point(marker.stop.coords),marker,cssVar)});
+  canvas.toBlob(function(blob){
+    if(!blob){toast("PNG export failed");return}
+    var url=URL.createObjectURL(blob),anchor=document.createElement("a"),name=String(DATA.trainId||"route").replace(/[^a-z0-9]+/gi,"-").replace(/^-|-$/g,"")||"route";
+    anchor.href=url;anchor.download="route-map_"+name+"_"+(String(DATA.updatedAt||"").slice(0,10)||"snapshot")+".png";anchor.click();setTimeout(function(){URL.revokeObjectURL(url)},1200);toast("Map PNG downloaded");
+  },"image/png");
+}
+/* Canvas copies of the .round-pin, .hub-pin and .train-pin styles, including box-shadow rings. */
+function drawStopPin(ctx,c,marker,scale){
+  var major=marker.stop.major,half=(major?(marker.highlight?22:18):(marker.highlight?20:14))/2;
+  function shape(extra){ctx.beginPath();if(major){var d=(half+extra)*Math.SQRT2;ctx.moveTo(c.x,c.y-d);ctx.lineTo(c.x+d,c.y);ctx.lineTo(c.x,c.y+d);ctx.lineTo(c.x-d,c.y);ctx.closePath()}else ctx.arc(c.x,c.y,Math.max(0,half+extra),0,Math.PI*2)}
+  function fill(extra,color){shape(extra);ctx.fillStyle=color;ctx.fill()}
+  if(marker.highlight){ctx.save();ctx.shadowColor=marker.highlight;ctx.shadowBlur=18*scale;fill(0,marker.highlight);ctx.restore();fill(6,marker.highlight);fill(3,"#080a0d")}
+  else fill(2,major?"rgba(255,255,255,.15)":"rgba(255,255,255,.12)");
+  fill(0,"#080a0d");fill(-2,marker.color);
+}
+function drawTrainPin(ctx,c,offNetwork,scale,cssVar){
+  var fillColor=offNetwork?cssVar("--red","#ff7474"):cssVar("--yellow","#ffca0a");
+  function circle(r,color){ctx.beginPath();ctx.arc(c.x,c.y,r,0,Math.PI*2);ctx.fillStyle=color;ctx.fill()}
+  ctx.save();ctx.shadowColor=offNetwork?"rgba(0,0,0,.5)":"rgba(0,0,0,.45)";ctx.shadowOffsetY=8*scale;ctx.shadowBlur=18*scale;circle(17,"#080a0d");ctx.restore();
+  circle(offNetwork?21:20,offNetwork?"rgba(255,116,116,.3)":"rgba(255,202,10,.25)");circle(17,"#080a0d");circle(14,fillColor);
+  ctx.fillStyle=offNetwork?"#fff":"#090b0e";ctx.font="18px "+getComputedStyle(document.body).fontFamily;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("◆",c.x,c.y+1);
+}
+function drawLabel(ctx,c,marker,cssVar){
+  ctx.font="700 12px "+getComputedStyle(document.body).fontFamily;
+  var text=marker.stop.name,width=ctx.measureText(text).width+14,height=26,x=c.x-width/2,y=c.y-marker.labelOffset-height;
+  ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,width,height,4);else ctx.rect(x,y,width,height);
+  ctx.fillStyle="#121820";ctx.fill();ctx.strokeStyle=marker.highlight;ctx.lineWidth=1.5;ctx.stroke();
+  ctx.fillStyle=cssVar("--text","#f7f8fa");ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(text,c.x,y+height/2);
 }
 function stopStatus(index,info){
   if(info.mode==="stop"){if(index<info.index)return "done";if(index===info.index)return "current";return "future"}
@@ -1060,7 +1143,8 @@ function renderTimeline(data,metrics){
     card.tabIndex=0;card.setAttribute("aria-label",stop.name);
     card.addEventListener("click",function(){map.setView(stop.coords,7,{animate:true})});
     card.addEventListener("keydown",function(event){if(event.key==="Enter"||event.key===" "){event.preventDefault();map.setView(stop.coords,7,{animate:true})}});
-    var rail=textNode("div","rail",""),dot=textNode("div","dot","");
+    var rail=textNode("div","rail",""),dot=textNode("div","dot",""),highlight=highlightOf(stop);
+    if(highlight){dot.style.background=dot.style.borderColor=highlight;dot.style.boxShadow="0 0 0 4px "+highlight+"33"}
     rail.appendChild(dot);if(i<data.stops.length-1)rail.appendChild(textNode("div","connector",""));
     var infoBox=textNode("div","stop-info",""),nameRow=textNode("div","stop-name-row",""),name=textNode("div","stop-name",stop.name);
     nameRow.appendChild(name);
@@ -1096,7 +1180,7 @@ function render(data,fit){
   addStat(stats,"Train",data.trainId||"—");addStat(stats,"Customer",data.customer||"—");
   addStat(stats,"Cars",String(data.cars||0),data.commodity||"");var nextIndex=metrics.position.mode==="stop"?metrics.position.index+1:metrics.position.index+1;
   addStat(stats,"Next stop",stops[nextIndex]?stops[nextIndex].name:"Destination reached",stops[nextIndex]?shortDate(stops[nextIndex].projectedAt,data.timezone):"");
-  renderTimeline(data,metrics);renderMap(data,metrics);
+  renderTimeline(data,metrics);renderMap(data,metrics);renderHighlightTools(data);
   if(fit&&fitBounds&&fitBounds.isValid())map.fitBounds(fitBounds,{padding:[46,46],maxZoom:7});
 }
 function validate(data){
@@ -1124,8 +1208,13 @@ function init(){
   DATA=parseData();ensureDefaultSegments(DATA);if(window.NS_RAIL_ROUTER)window.NS_RAIL_ROUTER.routeData(DATA);initializeMap();render(DATA,true);
   byId("fitRouteButton").addEventListener("click",function(){if(fitBounds&&fitBounds.isValid())map.fitBounds(fitBounds,{padding:[46,46],maxZoom:7})});
   window.addEventListener("resize",function(){if(map)map.invalidateSize()});
+  var exportButton=byId("exportPngButton"),stopSelect=byId("highlightStop"),color=byId("highlightColor"),clear=byId("clearHighlightButton");
+  if(exportButton)exportButton.addEventListener("click",exportPng);
+  if(stopSelect)stopSelect.addEventListener("change",function(){renderHighlightTools(DATA)});
+  if(color)color.addEventListener("input",function(){setHighlight(color.value)});
+  if(clear)clear.addEventListener("click",function(){setHighlight("")});
 }
-window.NS_APP={init:init,getData:function(){return clone(DATA)},setData:setData,validate:validate,clone:clone,clean:clean,byId:byId,legKey:legKey,geometryForLeg:geometryForLeg,near:near,validGeometry:validGeometry,distanceToRailNetwork:distanceToRailNetwork,toast:toast,formatDate:formatDate,ensureDefaultSegments:ensureDefaultSegments};
+window.NS_APP={init:init,highlightOf:highlightOf,getData:function(){return clone(DATA)},setData:setData,validate:validate,clone:clone,clean:clean,byId:byId,legKey:legKey,geometryForLeg:geometryForLeg,near:near,validGeometry:validGeometry,distanceToRailNetwork:distanceToRailNetwork,toast:toast,formatDate:formatDate,ensureDefaultSegments:ensureDefaultSegments};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
 </script>
@@ -1142,6 +1231,7 @@ var BUILTIN_LOCATIONS={
  "Cleveland, OH":{coords:[41.505,-81.681],type:"Waypoint"},"Conway Yard, PA":{coords:[40.664,-80.24],type:"Classification Yard",major:true},
  "Altoona, PA":{coords:[40.519,-78.395],type:"Waypoint"},"Harrisburg, PA":{coords:[40.273,-76.884],type:"Waypoint"},
  "Philadelphia, PA":{coords:[39.952,-75.163],type:"Destination"},"Toledo, OH":{coords:[41.664,-83.555],type:"Waypoint"},
+ "Bellevue, OH":{coords:[41.2737,-82.8413],type:"Classification Yard",major:true},
  "Elkhart, IN":{coords:[41.6692,-86.009],type:"Classification Yard",major:true},"Abrams, PA":{coords:[40.11476,-75.3782],type:"Classification Yard",major:true},
  "Pittsburgh, PA":{coords:[40.441,-79.996],type:"Waypoint"},"Roanoke, VA":{coords:[37.271,-79.941],type:"Waypoint"},
  "Norfolk, VA":{coords:[36.846,-76.285],type:"Destination"},"Atlanta, GA":{coords:[33.749,-84.388],type:"Waypoint"},
@@ -1450,7 +1540,7 @@ function migrate(raw){
 }
 function uniqueLegacyId(name,index){return String(name||"stop").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,32)+"-"+(index+1)}
 function cleanGeometry(value,limit){var points=[];if(!Array.isArray(value))return points;value.slice(0,limit||20000).forEach(function(point){if(Array.isArray(point)&&isFinite(point[0])&&isFinite(point[1])&&Number(point[0])>=-90&&Number(point[0])<=90&&Number(point[1])>=-180&&Number(point[1])<=180)points.push([Number(point[0]),Number(point[1])])});return points}
-function normalizeStop(stop,index){stop=stop&&typeof stop==="object"?stop:{};return {id:APP.clean(stop.id||uniqueLegacyId(stop.name,index),80),name:APP.clean(stop.name||"Stop "+(index+1),200),coords:[Number(stop.coords&&stop.coords[0]),Number(stop.coords&&stop.coords[1])],type:APP.clean(stop.type||"Waypoint",80),major:!!stop.major,scheduledAt:APP.clean(stop.scheduledAt||"",40),projectedAt:APP.clean(stop.projectedAt||"",40),timingState:["actual","estimated","none"].indexOf(stop.timingState)>=0?stop.timingState:"none",customerNote:APP.clean(stop.customerNote||"",2000),internalNote:APP.clean(stop.internalNote||"",2000),via:cleanGeometry(stop.via,500)}}
+function normalizeStop(stop,index){stop=stop&&typeof stop==="object"?stop:{};return {id:APP.clean(stop.id||uniqueLegacyId(stop.name,index),80),name:APP.clean(stop.name||"Stop "+(index+1),200),coords:[Number(stop.coords&&stop.coords[0]),Number(stop.coords&&stop.coords[1])],type:APP.clean(stop.type||"Waypoint",80),major:!!stop.major,scheduledAt:APP.clean(stop.scheduledAt||"",40),projectedAt:APP.clean(stop.projectedAt||"",40),timingState:["actual","estimated","none"].indexOf(stop.timingState)>=0?stop.timingState:"none",customerNote:APP.clean(stop.customerNote||"",2000),internalNote:APP.clean(stop.internalNote||"",2000),via:cleanGeometry(stop.via,500),highlight:APP.highlightOf(stop)}}
 function downloadCustomer(alreadyRouted){
   var errors=APP.validate(DRAFT);if(errors.length){showErrors(errors);return false}
   if(alreadyRouted!==true){var routed=autoRoute({silent:true});if(routed.skipped){showErrors([routed.skipped+" route leg"+(routed.skipped===1?"":"s")+" could not follow the embedded NS track. Check the stop coordinates and try again."]);return false}}
