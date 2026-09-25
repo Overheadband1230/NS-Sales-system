@@ -731,7 +731,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .train-pin.off-network{background:var(--red);color:#fff;box-shadow:0 0 0 4px rgba(255,116,116,.3),0 8px 18px rgba(0,0,0,.5)}
 .hub-pin{width:18px;height:18px;transform:rotate(45deg);border:2px solid #080a0d;box-shadow:0 0 0 2px rgba(255,255,255,.15)}
 .round-pin{width:14px;height:14px;border-radius:50%;border:2px solid #080a0d;box-shadow:0 0 0 2px rgba(255,255,255,.12)}
-.stop-icon{display:grid;place-items:center}.round-pin.highlighted{width:20px;height:20px}.hub-pin.highlighted{width:22px;height:22px}
+.stop-icon{display:grid;place-items:center}
 .leaflet-tooltip{background:#121820!important;color:var(--text)!important;border:1px solid var(--line)!important;box-shadow:0 8px 24px rgba(0,0,0,.35)!important}
 .leaflet-tooltip:before{display:none}
 .editor-shade{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:1999;opacity:0;pointer-events:none;transition:opacity .2s}
@@ -885,7 +885,7 @@ const NS_NET = [[380139,380150,[[41.57883,-93.57441],[41.57795,-93.57126]]],[386
 "use strict";
 var DATA=null,map=null,routeGroup=null,networkGroup=null,fitBounds=null,lastMetrics=null;
 var OFF_NETWORK_MILES=5,railSegmentsCache=null;
-var COLORS={done:"#54a9ff",current:"#ffca0a",future:"#687384"},HIGHLIGHT_DEFAULT="#ff4fd8";
+var COLORS={done:"#54a9ff",current:"#ffca0a",future:"#687384"},HIGHLIGHT_DEFAULT="#ff4fd8",LABEL_OFFSET=9;
 function byId(id){return document.getElementById(id)}
 function clone(value){return JSON.parse(JSON.stringify(value))}
 function clamp(value,min,max){return Math.max(min,Math.min(max,value))}
@@ -1042,13 +1042,12 @@ function stopMarkers(data,info){
   return data.stops.map(function(stop,i){
     var status=stopStatus(i,info),highlight=highlightOf(stop);
     var color=highlight||(status==="done"?COLORS.done:(status==="current"||status==="next"?COLORS.current:COLORS.future));
-    return {stop:stop,color:color,highlight:highlight,labelOffset:highlight?(stop.major?26:19):9};
+    return {stop:stop,color:color,highlight:highlight};
   });
 }
 function markerHtml(marker){
   var div=document.createElement("div");
-  div.className=(marker.stop.major?"hub-pin":"round-pin")+(marker.highlight?" highlighted":"");div.style.background=marker.color;
-  if(marker.highlight)div.style.boxShadow="0 0 0 3px #080a0d,0 0 0 6px "+marker.highlight+",0 0 18px "+marker.highlight;
+  div.className=marker.stop.major?"hub-pin":"round-pin";div.style.background=marker.color;
   return div.outerHTML;
 }
 function renderMap(data,metrics){
@@ -1057,8 +1056,8 @@ function renderMap(data,metrics){
   metrics.legs.forEach(function(leg,i){if(leg.geometry.length>1)allPoints=allPoints.concat(i?leg.geometry.slice(1):leg.geometry)});
   routeLines(metrics).forEach(function(line){L.polyline(line.points,{color:line.color,weight:line.weight,dashArray:line.dash?line.dash.join(" "):null,lineCap:"round"}).addTo(routeGroup)});
   stopMarkers(data,info).forEach(function(marker){
-    var size=marker.highlight?36:22,icon=L.divIcon({className:"stop-icon",html:markerHtml(marker),iconSize:[size,size],iconAnchor:[size/2,size/2]});
-    var pin=L.marker(marker.stop.coords,{icon:icon,keyboard:true,title:marker.stop.name,zIndexOffset:marker.highlight?500:0}).addTo(routeGroup).bindTooltip(marker.stop.name,{direction:"top",offset:[0,-marker.labelOffset],permanent:!!marker.highlight});
+    var icon=L.divIcon({className:"stop-icon",html:markerHtml(marker),iconSize:[22,22],iconAnchor:[11,11]});
+    var pin=L.marker(marker.stop.coords,{icon:icon,keyboard:true,title:marker.stop.name,zIndexOffset:marker.highlight?500:0}).addTo(routeGroup).bindTooltip(marker.stop.name,{direction:"top",offset:[0,-LABEL_OFFSET],permanent:!!marker.highlight});
     var tip=marker.highlight&&pin.getTooltip().getElement();if(tip)tip.style.setProperty("border-color",marker.highlight,"important");
   });
   var trainIcon=L.divIcon({className:"",html:'<div class="train-pin'+(metrics.offNetwork?' off-network':'')+'" aria-hidden="true">◆</div>',iconSize:[34,34],iconAnchor:[17,17]});
@@ -1091,7 +1090,7 @@ function exportPng(){
   ctx.strokeStyle="rgba(168,117,36,.35)";ctx.lineWidth=1;ctx.stroke();
   routeLines(lastMetrics).forEach(function(line){ctx.beginPath();trace(line.points);ctx.strokeStyle=line.color;ctx.lineWidth=line.weight;ctx.setLineDash(line.dash||[]);ctx.stroke()});ctx.setLineDash([]);
   var markers=stopMarkers(DATA,lastMetrics.position);
-  markers.filter(function(m){return !m.highlight}).concat(markers.filter(function(m){return m.highlight})).forEach(function(marker){drawStopPin(ctx,point(marker.stop.coords),marker,scale)});
+  markers.filter(function(m){return !m.highlight}).concat(markers.filter(function(m){return m.highlight})).forEach(function(marker){drawStopPin(ctx,point(marker.stop.coords),marker)});
   drawTrainPin(ctx,point(lastMetrics.position.point),lastMetrics.offNetwork,scale,cssVar);
   markers.forEach(function(marker){if(marker.highlight)drawLabel(ctx,point(marker.stop.coords),marker,cssVar)});
   canvas.toBlob(function(blob){
@@ -1101,12 +1100,11 @@ function exportPng(){
   },"image/png");
 }
 /* Canvas copies of the .round-pin, .hub-pin and .train-pin styles, including box-shadow rings. */
-function drawStopPin(ctx,c,marker,scale){
-  var major=marker.stop.major,half=(major?(marker.highlight?22:18):(marker.highlight?20:14))/2;
+function drawStopPin(ctx,c,marker){
+  var major=marker.stop.major,half=(major?18:14)/2;
   function shape(extra){ctx.beginPath();if(major){var d=(half+extra)*Math.SQRT2;ctx.moveTo(c.x,c.y-d);ctx.lineTo(c.x+d,c.y);ctx.lineTo(c.x,c.y+d);ctx.lineTo(c.x-d,c.y);ctx.closePath()}else ctx.arc(c.x,c.y,Math.max(0,half+extra),0,Math.PI*2)}
   function fill(extra,color){shape(extra);ctx.fillStyle=color;ctx.fill()}
-  if(marker.highlight){ctx.save();ctx.shadowColor=marker.highlight;ctx.shadowBlur=18*scale;fill(0,marker.highlight);ctx.restore();fill(6,marker.highlight);fill(3,"#080a0d")}
-  else fill(2,major?"rgba(255,255,255,.15)":"rgba(255,255,255,.12)");
+  fill(2,major?"rgba(255,255,255,.15)":"rgba(255,255,255,.12)");
   fill(0,"#080a0d");fill(-2,marker.color);
 }
 function drawTrainPin(ctx,c,offNetwork,scale,cssVar){
@@ -1118,7 +1116,7 @@ function drawTrainPin(ctx,c,offNetwork,scale,cssVar){
 }
 function drawLabel(ctx,c,marker,cssVar){
   ctx.font="700 12px "+getComputedStyle(document.body).fontFamily;
-  var text=marker.stop.name,width=ctx.measureText(text).width+14,height=26,x=c.x-width/2,y=c.y-marker.labelOffset-height;
+  var text=marker.stop.name,width=ctx.measureText(text).width+14,height=26,x=c.x-width/2,y=c.y-LABEL_OFFSET-height;
   ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,width,height,4);else ctx.rect(x,y,width,height);
   ctx.fillStyle="#121820";ctx.fill();ctx.strokeStyle=marker.highlight;ctx.lineWidth=1.5;ctx.stroke();
   ctx.fillStyle=cssVar("--text","#f7f8fa");ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(text,c.x,y+height/2);
@@ -1144,7 +1142,7 @@ function renderTimeline(data,metrics){
     card.addEventListener("click",function(){map.setView(stop.coords,7,{animate:true})});
     card.addEventListener("keydown",function(event){if(event.key==="Enter"||event.key===" "){event.preventDefault();map.setView(stop.coords,7,{animate:true})}});
     var rail=textNode("div","rail",""),dot=textNode("div","dot",""),highlight=highlightOf(stop);
-    if(highlight){dot.style.background=dot.style.borderColor=highlight;dot.style.boxShadow="0 0 0 4px "+highlight+"33"}
+    if(highlight)dot.style.background=dot.style.borderColor=highlight;
     rail.appendChild(dot);if(i<data.stops.length-1)rail.appendChild(textNode("div","connector",""));
     var infoBox=textNode("div","stop-info",""),nameRow=textNode("div","stop-name-row",""),name=textNode("div","stop-name",stop.name);
     nameRow.appendChild(name);
